@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import { useAuth } from "@/features/auth/useAuth";
 import { fetchHealth, type HealthResponse } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 
 export function Dashboard() {
+  const { user, logout } = useAuth();
   const [health, setHealth] = useState<HealthResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -25,15 +27,22 @@ export function Dashboard() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-8">
-      <div className="max-w-md w-full bg-card text-card-foreground rounded-lg border shadow-sm p-8 space-y-4">
-        <h1 className="text-3xl font-bold tracking-tight">OncoClarion</h1>
-        <p className="text-muted-foreground">
-          Open-source software for oncology patient flow.
-        </p>
+    <div className="min-h-screen bg-background p-8">
+      <div className="max-w-3xl mx-auto space-y-6">
+        <header className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">OncoClarion</h1>
+            <p className="text-muted-foreground">
+              Signed in as {user?.full_name || user?.username}
+            </p>
+          </div>
+          <Button variant="outline" onClick={() => logout()}>
+            Sign out
+          </Button>
+        </header>
 
-        <div className="border-t pt-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wide mb-2 text-muted-foreground">
+        <div className="bg-card text-card-foreground rounded-lg border shadow-sm p-6 space-y-4">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Backend status
           </h2>
           {loading && <p className="text-muted-foreground">Checking…</p>}
@@ -43,11 +52,19 @@ export function Dashboard() {
               {health.status} — {health.service}
             </p>
           )}
+          <Button onClick={loadHealth} disabled={loading}>
+            {loading ? "Checking…" : "Re-check"}
+          </Button>
         </div>
 
-        <Button onClick={loadHealth} disabled={loading}>
-          {loading ? "Checking…" : "Re-check"}
-        </Button>
+        <div className="bg-card text-card-foreground rounded-lg border shadow-sm p-6">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+            Coming next
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Patients, CancerCases, Events, and the queues.
+          </p>
+        </div>
       </div>
     </div>
   );

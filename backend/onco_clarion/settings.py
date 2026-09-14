@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "corsheaders",
     # Local
     "apps.core",
+    "apps.accounts",
 ]
 
 MIDDLEWARE = [
@@ -52,6 +53,7 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
+    "apps.accounts.middleware.EnsureCsrfCookieMiddleware",  # ← должно быть
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -101,6 +103,10 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # ---------------------------------------------------------------------------
+# User validation
+# ---------------------------------------------------------------------------
+AUTH_USER_MODEL = "accounts.User"
+# ---------------------------------------------------------------------------
 # Internationalization
 # ---------------------------------------------------------------------------
 LANGUAGE_CODE = "en-us"
@@ -132,6 +138,25 @@ CSRF_TRUSTED_ORIGINS = env(
     "CSRF_TRUSTED_ORIGINS",
     default=["http://localhost:5173", "http://localhost:8000"],
 )
+
+
+# ---------------------------------------------------------------------------
+# Session / CSRF cookies
+# ---------------------------------------------------------------------------
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_SECURE = not DEBUG  # True в prod (HTTPS), False в dev
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 14  # 2 недели
+
+CSRF_COOKIE_HTTPONLY = False  # React должен читать csrftoken
+CSRF_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_AGE = 60 * 60 * 24 * 14
+
+# React читает cookie с именем "csrftoken" и отправляет в X-CSRFToken
+CSRF_HEADER_NAME = "HTTP_X_CSRFTOKEN"
+
+
 
 # ---------------------------------------------------------------------------
 # Django REST Framework
