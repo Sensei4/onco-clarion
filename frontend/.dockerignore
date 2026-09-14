@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.vite/
+.git/
+.gitignore
+npm-debug.log*
+*.log
+.env
+.env.*
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+README.md
