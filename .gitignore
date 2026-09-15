@@ -62,3 +62,8 @@ docker-compose.override.yml
 *.bak
 *.tmp
 certs/
+
+# ---- Local dev utilities / notes ----
+api.ps1
+*.local.ps1
+local-notes/
