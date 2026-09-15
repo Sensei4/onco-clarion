@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     # Local
     "apps.core",
     "apps.accounts",
+    "apps.patients",
 ]
 
 MIDDLEWARE = [
@@ -171,4 +172,12 @@ REST_FRAMEWORK = {
         "rest_framework.renderers.JSONRenderer",
         "rest_framework.renderers.BrowsableAPIRenderer",
     ],
+    "DEFAULT_PAGINATION_CLASS": "apps.core.pagination.StandardPageNumberPagination",
+    "PAGE_SIZE": 20,
 }
+
+# ---------------------------------------------------------------------------
+# Pagination
+# ---------------------------------------------------------------------------
+REST_FRAMEWORK_PAGE_SIZE = 20
+REST_FRAMEWORK_MAX_PAGE_SIZE = 100

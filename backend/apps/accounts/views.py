@@ -54,6 +54,7 @@ def logout_view(request):
 def me_view(request):
     return Response(UserSerializer(request.user).data)
 
+
 class OrganizationViewSet(viewsets.ModelViewSet):
     """CRUD for organizations.
 
