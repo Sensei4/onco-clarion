@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Plus, Search as SearchIcon } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -128,7 +129,12 @@ export function PatientsList() {
                     className="cursor-pointer hover:bg-accent"
                   >
                     <TableCell className="font-medium">
-                      {patient.full_name}
+                      <Link
+                        to={`/patients/${patient.id}`}
+                        className="block hover:underline"
+                      >
+                        {patient.full_name}
+                      </Link>
                     </TableCell>
                     <TableCell className="font-mono text-xs">
                       {patient.medical_record_number}

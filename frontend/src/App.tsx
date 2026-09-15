@@ -6,13 +6,14 @@ import { RequireAuth } from "@/features/auth/RequireAuth";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Dashboard } from "@/pages/Dashboard";
 import { Login } from "@/pages/Login";
+import { PatientDetail } from "@/pages/PatientDetail";
 import { PatientsList } from "@/pages/PatientsList";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 30_000, // 30 seconds
-      retry: 1, // retry once on failure
+      staleTime: 30_000,
+      retry: 1,
       refetchOnWindowFocus: false,
     },
   },
@@ -29,6 +30,7 @@ export default function App() {
               <Route element={<AppLayout />}>
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/patients" element={<PatientsList />} />
+                <Route path="/patients/:id" element={<PatientDetail />} />
               </Route>
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
