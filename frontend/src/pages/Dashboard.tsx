@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/features/auth/useAuth";
 import { fetchHealth, type HealthResponse } from "@/lib/api";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function Dashboard() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [health, setHealth] = useState<HealthResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -27,44 +28,49 @@ export function Dashboard() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="max-w-3xl mx-auto space-y-6">
-        <header className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">OncoClarion</h1>
-            <p className="text-muted-foreground">
-              Signed in as {user?.full_name || user?.username}
-            </p>
-          </div>
-          <Button variant="outline" onClick={() => logout()}>
-            Sign out
-          </Button>
-        </header>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground">
+          Welcome back, {user?.full_name || user?.username}
+        </p>
+      </div>
 
-        <div className="bg-card text-card-foreground rounded-lg border shadow-sm p-6 space-y-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            Backend status
-          </h2>
-          {loading && <p className="text-muted-foreground">Checking…</p>}
-          {error && <p className="text-destructive text-sm">Error: {error}</p>}
-          {health && (
-            <p className="text-sm text-green-600 dark:text-green-400">
-              {health.status} — {health.service}
-            </p>
-          )}
-          <Button onClick={loadHealth} disabled={loading}>
-            {loading ? "Checking…" : "Re-check"}
-          </Button>
-        </div>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+              Backend status
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {loading && <p className="text-muted-foreground">Checking…</p>}
+            {error && (
+              <p className="text-destructive text-sm">Error: {error}</p>
+            )}
+            {health && (
+              <p className="text-sm text-green-600 dark:text-green-400">
+                {health.status} — {health.service}
+              </p>
+            )}
+            <Button onClick={loadHealth} disabled={loading} size="sm">
+              {loading ? "Checking…" : "Re-check"}
+            </Button>
+          </CardContent>
+        </Card>
 
-        <div className="bg-card text-card-foreground rounded-lg border shadow-sm p-6">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-            Coming next
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Patients, CancerCases, Events, and the queues.
-          </p>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+              Coming next
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Cancer cases, events, and the full patient flow.
+            </p>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
