@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { CasesSection } from "@/features/cases/components/CasesSection";
 import { PatientEditDialog } from "@/features/patients/components/PatientEditDialog";
 import { usePatient } from "@/features/patients/hooks";
 import type { PatientSex } from "@/features/patients/types";
@@ -165,6 +166,13 @@ export function PatientDetail() {
             )}
           </CardContent>
         </Card>
+
+        <div className="md:col-span-2">
+          <CasesSection
+            patientId={patient.id}
+            organizationId={patient.organization}
+          />
+        </div>
       </div>
 
       <PatientEditDialog
