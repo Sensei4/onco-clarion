@@ -1,12 +1,16 @@
-# Create your views here.
 from django.db.models import Q, QuerySet
-from rest_framework import viewsets
+from django_fsm import TransitionNotAllowed
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from .models import CancerCase
 from .serializers import (
     CancerCaseDetailSerializer,
     CancerCaseListSerializer,
+    StatusTransitionSerializer,
+    TransitionActionSerializer,
 )
 
 
@@ -42,17 +46,14 @@ class CancerCaseViewSet(viewsets.ModelViewSet):
     def filter_queryset(self, queryset: QuerySet[CancerCase]) -> QuerySet[CancerCase]:
         queryset = super().filter_queryset(queryset)
 
-        # Filter by patient
         patient_id = self.request.query_params.get("patient")
         if patient_id:
             queryset = queryset.filter(patient_id=patient_id)
 
-        # Filter by status
-        status = self.request.query_params.get("status")
-        if status:
-            queryset = queryset.filter(status=status)
+        status_filter = self.request.query_params.get("status")
+        if status_filter:
+            queryset = queryset.filter(status=status_filter)
 
-        # Search by diagnosis code or text
         search = self.request.query_params.get("search")
         if search:
             queryset = queryset.filter(
@@ -62,3 +63,43 @@ class CancerCaseViewSet(viewsets.ModelViewSet):
             )
 
         return queryset
+
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path="transition",
+        url_name="transition",
+    )
+    def transition_action(self, request, pk=None):
+        """Apply a state machine transition to a case."""
+        case = self.get_object()
+        serializer = TransitionActionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        action_name = serializer.validated_data["action"]
+        reason = serializer.validated_data.get("reason", "")
+
+        method = getattr(case, action_name)
+        try:
+            method(by_user=request.user, reason=reason)
+        except TransitionNotAllowed as e:
+            return Response(
+                {"detail": str(e)},
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        case.save()
+        return Response(CancerCaseDetailSerializer(case).data)
+
+    @action(
+        detail=True,
+        methods=["get"],
+        url_path="transitions",
+        url_name="transitions",
+    )
+    def transitions_list(self, request, pk=None):
+        """Return the audit trail for a case."""
+        case = self.get_object()
+        transitions = case.status_transitions.select_related("transitioned_by").all()
+        serializer = StatusTransitionSerializer(transitions, many=True)
+        return Response(serializer.data)

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import CancerCase
+from .models import CancerCase, StatusTransition
 
 
 class CancerCaseListSerializer(serializers.ModelSerializer):
@@ -102,4 +102,44 @@ class CancerCaseDetailSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "Patient must belong to the same organization as the case."
             )
+        return value
+
+
+class StatusTransitionSerializer(serializers.ModelSerializer):
+    """Read-only serializer for audit records."""
+
+    transitioned_by_name = serializers.CharField(
+        source="transitioned_by.username",
+        read_only=True,
+        default=None,
+    )
+
+    class Meta:
+        model = StatusTransition
+        fields = (
+            "id",
+            "from_status",
+            "to_status",
+            "transitioned_by",
+            "transitioned_by_name",
+            "transitioned_at",
+            "reason",
+        )
+        read_only_fields = fields
+
+
+class TransitionActionSerializer(serializers.Serializer):
+    """Input for POST /api/cases/{id}/transition/."""
+
+    action = serializers.CharField()
+    reason = serializers.CharField(required=False, allow_blank=True, default="")
+
+    def validate_action(self, value: str) -> str:
+        """Check that `action` is a valid transition method on CancerCase."""
+        if not hasattr(CancerCase, value):
+            raise serializers.ValidationError(f"Unknown action: '{value}'.")
+        method = getattr(CancerCase, value)
+        # Transition methods are decorated and carry a `_django_fsm` attribute
+        if not hasattr(method, "_django_fsm"):
+            raise serializers.ValidationError(f"'{value}' is not a transition action.")
         return value
