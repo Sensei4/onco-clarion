@@ -42,10 +42,12 @@ INSTALLED_APPS = [
     # Third-party
     "rest_framework",
     "corsheaders",
+    "django_fsm",
     # Local
     "apps.core",
     "apps.accounts",
     "apps.patients",
+    "apps.cases",
 ]
 
 MIDDLEWARE = [
