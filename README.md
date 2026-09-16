@@ -4,7 +4,9 @@ An open-source web application for organizing the work of oncology
 dispensaries and cancer clinics: patient flow, medical encounters,
 tumor boards, hospitalizations, and long-term follow-up.
 
-> **Status:** early development (pre-alpha). Not ready for clinical use.
+> **Status:** pre-alpha. Working: authentication, patient management,
+> cancer case management with FSM lifecycle and audit trail.
+> Not ready for clinical use.
 
 ## What problem does it solve
 
@@ -40,6 +42,18 @@ See [`docs/domain.md`](docs/domain.md) for the full domain model.
 - License: Apache 2.0
 
 See [`docs/adr/`](docs/adr/) for architecture decision records.
+
+## What works now
+
+- Session-based authentication with role-based access.
+- Multi-tenant patient management (scoped to user's organization).
+- Patient CRUD with search and pagination.
+- Cancer case management with FSM lifecycle:
+  - 9 statuses: new → diagnostic → consilium → waiting_hospitalization
+    → in_treatment → observation → remission (or relapse → consilium, or terminal)
+  - Every transition is audited (who, when, why).
+  - Transitions can only be performed via the FSM API.
+- Case timeline UI showing complete status history.
 
 ## Getting started
 

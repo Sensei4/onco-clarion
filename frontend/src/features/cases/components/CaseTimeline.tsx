@@ -43,7 +43,7 @@ export function CaseTimeline({ transitions }: CaseTimelineProps) {
         <li key={t.id} className="relative">
           <span
             className={
-              "absolute -left-[29px] top-1 flex h-3 w-3 items-center justify-center rounded-full border-2 border-background " +
+              "absolute -left-7.25 top-1 flex h-3 w-3 items-center justify-center rounded-full border-2 border-background " +
               (index === 0 ? "bg-primary" : "bg-muted-foreground/40")
             }
             aria-hidden
