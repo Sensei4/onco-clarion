@@ -29,13 +29,13 @@ GitHub Issues and project milestones.
 - [ ] Referral model
 - [ ] Document model with file storage
 
-## Phase 2 — Workflows (in progress)
+## Phase 2 — Workflows ✅
 
 - [x] Case timeline (status transitions)
 - [x] Events section on case page
-- [ ] Schedule view (planned events for today and upcoming days)
-- [ ] Waiting list view (cases with `waiting_hospitalization` status)
-- [ ] Observation list view (cases with `observation` status)
+- [x] Schedule view (planned events for today and upcoming days)
+- [x] Waiting list view (cases with `waiting_hospitalization` status)
+- [x] Observation list view (cases with `observation` status)
 - [ ] Tumor board recording workflow
 - [ ] Hospitalization workflow
 

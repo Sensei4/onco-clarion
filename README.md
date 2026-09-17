@@ -54,6 +54,14 @@ See [`docs/adr/`](docs/adr/) for architecture decision records.
   - Every transition is audited (who, when, why).
   - Transitions can only be performed via the FSM API.
 - Case timeline UI showing complete status history.
+- Clinical events (visits, consilia, hospitalizations, treatments,
+  observation) with per-type fields.
+- Three workflow queues for daily clinical work:
+  - **Schedule** — planned events grouped by day.
+  - **Waiting list** — cases waiting for hospitalization
+    (sorted by waiting time).
+  - **Observation** — cases under observation
+    (sorted by time since last visit).
 
 ## Getting started
 
