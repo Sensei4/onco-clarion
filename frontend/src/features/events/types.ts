@@ -96,6 +96,8 @@ export interface EventListParams {
   patient?: number;
   type?: EventType;
   status?: EventStatus;
+  scheduled_from?: string;
+  scheduled_to?: string;
   search?: string;
 }
 

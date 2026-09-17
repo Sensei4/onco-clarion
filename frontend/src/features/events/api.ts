@@ -28,6 +28,8 @@ function buildQuery(params: EventListParams): string {
     query.set("patient", String(params.patient));
   if (params.type) query.set("type", params.type);
   if (params.status) query.set("status", params.status);
+  if (params.scheduled_from) query.set("scheduled_from", params.scheduled_from);
+  if (params.scheduled_to) query.set("scheduled_to", params.scheduled_to);
   if (params.search) query.set("search", params.search);
   const qs = query.toString();
   return qs ? `?${qs}` : "";

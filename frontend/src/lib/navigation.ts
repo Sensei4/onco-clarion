@@ -32,14 +32,12 @@ export const navigation: NavItem[] = [
     name: "Schedule",
     href: "/schedule",
     icon: Calendar,
-    disabled: true,
     description: "Appointments",
   },
   {
     name: "Waiting list",
     href: "/waiting-list",
     icon: ClipboardList,
-    disabled: true,
     description: "For hospitalization",
   },
   {
