@@ -13,24 +13,27 @@ GitHub Issues and project milestones.
 - [x] Authentication end-to-end (session-based)
 - [x] CI pipeline (lint + tests)
 
-## Phase 1 — Core domain (in progress)
+## Phase 1 — Core domain ✅
 
 - [x] Organization and User models (custom user)
 - [x] Patient model and CRUD (multi-tenant by organization)
 - [x] CancerCase model with FSM lifecycle (9 statuses)
 - [x] StatusTransition audit trail
 - [x] Case transitions API with validation
+- [x] Event base model and 6 subtypes (primary visit, follow-up,
+      observation, consilium, hospitalization, treatment)
+- [x] Event API (read all + write per subtype)
 - [x] Patient list, detail, and create UI
-- [x] Case detail UI with transition buttons and timeline
-- [ ] Event base model + subtypes (visit, consilium,
-      hospitalization, treatment, observation visit)
+- [x] Case detail UI with transition buttons, timeline, and events
+- [x] Event create dialog with per-type fields
 - [ ] Referral model
 - [ ] Document model with file storage
 
-## Phase 2 — Workflows (partially started)
+## Phase 2 — Workflows (in progress)
 
 - [x] Case timeline (status transitions)
-- [ ] Schedule view (today's and upcoming visits)
+- [x] Events section on case page
+- [ ] Schedule view (planned events for today and upcoming days)
 - [ ] Waiting list view (cases with `waiting_hospitalization` status)
 - [ ] Observation list view (cases with `observation` status)
 - [ ] Tumor board recording workflow
