@@ -11,6 +11,7 @@ import { CaseTimeline } from "@/features/cases/components/CaseTimeline";
 import { CaseTransitionButtons } from "@/features/cases/components/CaseTransitionButtons";
 import { useCase, useTransitions } from "@/features/cases/hooks";
 import type { CaseStatus } from "@/features/cases/types";
+import { EventsSection } from "@/features/events/components/EventsSection";
 
 const STATUS_VARIANTS: Record<
   CaseStatus,
@@ -192,10 +193,18 @@ export function CaseDetail() {
           </CardContent>
         </Card>
 
+        <div className="md:col-span-2">
+          <EventsSection
+            caseId={caseData.id}
+            patientId={caseData.patient}
+            organizationId={caseData.organization}
+          />
+        </div>
+
         <Card className="md:col-span-2">
           <CardHeader>
             <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-              Timeline
+              Status timeline
             </CardTitle>
           </CardHeader>
           <CardContent>
