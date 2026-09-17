@@ -129,6 +129,7 @@ class EventHospitalizationAdmin(admin.ModelAdmin):
     autocomplete_fields = ("case", "patient", "author")
     readonly_fields = ("created_at", "updated_at")
 
+
 @admin.register(EventTreatment)
 class EventTreatmentAdmin(admin.ModelAdmin):
     list_display = (
