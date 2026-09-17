@@ -65,6 +65,14 @@ class BaseEventReadViewSet(
         if type_filter:
             qs = qs.filter(type=type_filter)
 
+        scheduled_from = self.request.query_params.get("scheduled_from")
+        if scheduled_from:
+            qs = qs.filter(scheduled_at__gte=scheduled_from)
+
+        scheduled_to = self.request.query_params.get("scheduled_to")
+        if scheduled_to:
+            qs = qs.filter(scheduled_at__lte=scheduled_to)
+
         search = self.request.query_params.get("search")
         if search:
             qs = qs.filter(
