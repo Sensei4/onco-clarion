@@ -79,3 +79,12 @@ export interface WaitingListCase extends CancerCaseDetail {
 export async function fetchWaitingList(): Promise<WaitingListCase[]> {
   return apiRequest<WaitingListCase[]>("/cases/waiting-list/");
 }
+
+export interface ObservationListCase extends CancerCaseDetail {
+  last_visit_at: string | null;
+  next_visit_at: string | null;
+}
+
+export async function fetchObservationList(): Promise<ObservationListCase[]> {
+  return apiRequest<ObservationListCase[]>("/cases/observation-list/");
+}

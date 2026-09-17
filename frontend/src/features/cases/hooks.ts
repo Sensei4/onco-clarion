@@ -9,6 +9,7 @@ import {
   createCase,
   fetchCase,
   fetchCases,
+  fetchObservationList,
   fetchTransitions,
   fetchWaitingList,
   transitionCase,
@@ -99,5 +100,12 @@ export function useWaitingList() {
   return useQuery({
     queryKey: ["cases", "waiting-list"] as const,
     queryFn: fetchWaitingList,
+  });
+}
+
+export function useObservationList() {
+  return useQuery({
+    queryKey: ["cases", "observation-list"] as const,
+    queryFn: fetchObservationList,
   });
 }

@@ -44,7 +44,6 @@ export const navigation: NavItem[] = [
     name: "Observation",
     href: "/observation",
     icon: Eye,
-    disabled: true,
     description: "Follow-up",
   },
 ];
