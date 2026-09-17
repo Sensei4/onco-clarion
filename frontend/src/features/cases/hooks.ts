@@ -10,6 +10,7 @@ import {
   fetchCase,
   fetchCases,
   fetchTransitions,
+  fetchWaitingList,
   transitionCase,
   updateCase,
 } from "./api";
@@ -91,5 +92,12 @@ export function useTransitionCase(id: number) {
       // Also refresh lists (status changed)
       queryClient.invalidateQueries({ queryKey: casesKey.all });
     },
+  });
+}
+
+export function useWaitingList() {
+  return useQuery({
+    queryKey: ["cases", "waiting-list"] as const,
+    queryFn: fetchWaitingList,
   });
 }

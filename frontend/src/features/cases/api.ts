@@ -70,3 +70,12 @@ export async function fetchTransitions(
 ): Promise<StatusTransition[]> {
   return apiRequest<StatusTransition[]>(`/cases/${id}/transitions/`);
 }
+
+export interface WaitingListCase extends CancerCaseDetail {
+  waiting_since: string | null;
+  waiting_days: number | null;
+}
+
+export async function fetchWaitingList(): Promise<WaitingListCase[]> {
+  return apiRequest<WaitingListCase[]>("/cases/waiting-list/");
+}
