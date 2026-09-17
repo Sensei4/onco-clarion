@@ -150,3 +150,58 @@ class CancerCaseViewSet(viewsets.ModelViewSet):
             results.append(item)
 
         return Response(results)
+
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="observation-list",
+        url_name="observation-list",
+    )
+    def observation_list(self, request):
+        """Return cases currently under observation.
+
+        Each case includes the date of the last completed
+        observation visit and the next planned one (if any).
+        """
+        from django.db.models import OuterRef, Subquery
+
+        from apps.events.models import Event
+
+        last_visit = (
+            Event.objects.filter(
+                case=OuterRef("pk"),
+                type="observation_visit",
+                status="done",
+            )
+            .order_by("-scheduled_at")
+            .values("scheduled_at")[:1]
+        )
+
+        next_visit = (
+            Event.objects.filter(
+                case=OuterRef("pk"),
+                type="observation_visit",
+                status="planned",
+            )
+            .order_by("scheduled_at")
+            .values("scheduled_at")[:1]
+        )
+
+        qs = (
+            self.get_queryset()
+            .filter(status="observation")
+            .annotate(
+                last_visit_at=Subquery(last_visit),
+                next_visit_at=Subquery(next_visit),
+            )
+            .order_by("-last_visit_at", "patient__full_name")
+        )
+
+        results = []
+        for case in qs:
+            item = CancerCaseDetailSerializer(case, context={"request": request}).data
+            item["last_visit_at"] = case.last_visit_at
+            item["next_visit_at"] = case.next_visit_at
+            results.append(item)
+
+        return Response(results)
