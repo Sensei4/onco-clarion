@@ -103,3 +103,50 @@ class CancerCaseViewSet(viewsets.ModelViewSet):
         transitions = case.status_transitions.select_related("transitioned_by").all()
         serializer = StatusTransitionSerializer(transitions, many=True)
         return Response(serializer.data)
+
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="waiting-list",
+        url_name="waiting-list",
+    )
+    def waiting_list(self, request):
+        """Return cases currently waiting for hospitalization.
+
+        Each case includes the date it entered the waiting list
+        (from the latest StatusTransition) and days waiting.
+        """
+        from django.db.models import OuterRef, Subquery
+        from django.utils import timezone
+
+        from .models import StatusTransition
+
+        # Subquery: latest transition INTO waiting_hospitalization for each case
+        latest_waiting = (
+            StatusTransition.objects.filter(
+                case=OuterRef("pk"),
+                to_status="waiting_hospitalization",
+            )
+            .order_by("-transitioned_at")
+            .values("transitioned_at")[:1]
+        )
+
+        qs = (
+            self.get_queryset()
+            .filter(status="waiting_hospitalization")
+            .annotate(waiting_since=Subquery(latest_waiting))
+            .order_by("waiting_since")
+        )
+
+        now = timezone.now()
+        results = []
+        for case in qs:
+            waiting_days = None
+            if case.waiting_since:
+                waiting_days = (now - case.waiting_since).days
+            item = CancerCaseDetailSerializer(case, context={"request": request}).data
+            item["waiting_since"] = case.waiting_since
+            item["waiting_days"] = waiting_days
+            results.append(item)
+
+        return Response(results)
