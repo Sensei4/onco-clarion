@@ -26,6 +26,14 @@ hospitalization → treatment → observation → (repeat) → remission
 
 Most generic EMR systems model documents. OncoClarion models the **patient flow** — the queues and transitions that matter clinically.
 
+## Demo
+
+[![OncoClarion demo]]
+
+A 10-minute walkthrough of a complete patient journey: from registering a new patient to follow-up in the observation queue.
+
+- [Watch on YouTube](https://youtu.be/vDniA3qLvdQ?si=navrQfeHFMwa7kFM)
+
 ## Screenshots
 
 ### Patient page with cancer cases
