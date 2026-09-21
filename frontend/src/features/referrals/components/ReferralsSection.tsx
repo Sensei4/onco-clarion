@@ -19,8 +19,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ReferralDetailDialog } from "@/features/referrals/components/ReferralDetailDialog";
 import { ReferralFormDialog } from "@/features/referrals/components/ReferralFormDialog";
-import { useReferrals } from "@/features/referrals/hooks";
+import { useReferral, useReferrals } from "@/features/referrals/hooks";
 import type { ReferralStatus, ReferralType } from "@/features/referrals/types";
 
 interface ReferralsSectionProps {
@@ -71,12 +72,15 @@ export function ReferralsSection({
 }: ReferralsSectionProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [typeFilter, setTypeFilter] = useState<ReferralType | "">("");
+  const [selectedId, setSelectedId] = useState<number | null>(null);
 
   const { data, isLoading, isError, error } = useReferrals({
     case: caseId,
     page_size: 100,
     type: typeFilter || undefined,
   });
+
+  const { data: selectedReferral } = useReferral(selectedId ?? undefined);
 
   return (
     <Card>
@@ -140,7 +144,11 @@ export function ReferralsSection({
                 const meta = TYPE_META[r.type];
                 const Icon = meta.icon;
                 return (
-                  <TableRow key={r.id} className="hover:bg-accent">
+                  <TableRow
+                    key={r.id}
+                    className="cursor-pointer hover:bg-accent"
+                    onClick={() => setSelectedId(r.id)}
+                  >
                     <TableCell className="font-medium">
                       <span className="inline-flex items-center gap-2">
                         <Icon className="h-4 w-4 text-muted-foreground" />
@@ -174,6 +182,12 @@ export function ReferralsSection({
         onOpenChange={setDialogOpen}
         caseId={caseId}
         organizationId={organizationId}
+      />
+
+      <ReferralDetailDialog
+        referral={selectedReferral ?? null}
+        open={selectedId !== null}
+        onOpenChange={(o) => !o && setSelectedId(null)}
       />
     </Card>
   );
