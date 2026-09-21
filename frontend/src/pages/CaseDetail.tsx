@@ -12,6 +12,7 @@ import { CaseTransitionButtons } from "@/features/cases/components/CaseTransitio
 import { useCase, useTransitions } from "@/features/cases/hooks";
 import type { CaseStatus } from "@/features/cases/types";
 import { EventsSection } from "@/features/events/components/EventsSection";
+import { ReferralsSection } from "@/features/referrals/components/ReferralsSection";
 
 const STATUS_VARIANTS: Record<
   CaseStatus,
@@ -197,6 +198,13 @@ export function CaseDetail() {
           <EventsSection
             caseId={caseData.id}
             patientId={caseData.patient}
+            organizationId={caseData.organization}
+          />
+        </div>
+
+        <div className="md:col-span-2">
+          <ReferralsSection
+            caseId={caseData.id}
             organizationId={caseData.organization}
           />
         </div>
