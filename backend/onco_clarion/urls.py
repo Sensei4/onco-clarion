@@ -11,7 +11,7 @@ urlpatterns = [
     path("api/", include("apps.cases.urls")),
     path("api/", include("apps.events.urls")),
     path("api/", include("apps.referrals.urls")),
-    # path("api/", include("apps.documents.urls")),  # раскомментируем в 11.2
+    path("api/", include("apps.documents.urls")),
 ]
 
 if settings.DEBUG:
