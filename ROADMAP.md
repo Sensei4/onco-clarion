@@ -26,7 +26,9 @@ GitHub Issues and project milestones.
 - [x] Patient list, detail, and create UI
 - [x] Case detail UI with transition buttons, timeline, and events
 - [x] Event create dialog with per-type fields
-- [ ] Referral model
+- [x] Referral model with 5 types and status lifecycle
+- [x] Referral CRUD API with complete/cancel/reopen actions
+- [x] Referral UI on case page with filter and detail dialog
 - [ ] Document model with file storage
 
 ## Phase 2 — Workflows ✅
