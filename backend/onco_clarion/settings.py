@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "apps.cases",
     "apps.events",
     "apps.referrals",
+    "apps.documents",
 ]
 
 MIDDLEWARE = [
@@ -124,6 +125,12 @@ USE_TZ = True
 # ---------------------------------------------------------------------------
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# ---------------------------------------------------------------------------
+# Media files (user-uploaded)
+# ---------------------------------------------------------------------------
+MEDIA_URL = "media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 # ---------------------------------------------------------------------------
 # Default primary key

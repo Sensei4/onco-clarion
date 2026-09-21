@@ -27,6 +27,7 @@ db.sqlite3-journal
 /media/
 /staticfiles/
 local_settings.py
+media/
 
 # ---- Node / Frontend ----
 node_modules/
