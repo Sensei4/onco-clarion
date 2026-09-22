@@ -5,6 +5,7 @@ import { ArrowLeft, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DocumentsSection } from "@/features/documents/components/DocumentsSection";
 import { Separator } from "@/components/ui/separator";
 import { CaseEditDialog } from "@/features/cases/components/CaseEditDialog";
 import { CaseTimeline } from "@/features/cases/components/CaseTimeline";
@@ -198,6 +199,13 @@ export function CaseDetail() {
           <EventsSection
             caseId={caseData.id}
             patientId={caseData.patient}
+            organizationId={caseData.organization}
+          />
+        </div>
+
+        <div className="md:col-span-2">
+          <DocumentsSection
+            caseId={caseData.id}
             organizationId={caseData.organization}
           />
         </div>

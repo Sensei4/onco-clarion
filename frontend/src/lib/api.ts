@@ -28,7 +28,7 @@ export class ApiRequestError extends Error {
 }
 
 interface RequestOptions extends Omit<RequestInit, "body"> {
-  body?: unknown;
+  body?: unknown | FormData;
 }
 
 /**
@@ -36,6 +36,7 @@ interface RequestOptions extends Omit<RequestInit, "body"> {
  * - prefixes /api
  * - sends cookies (credentials: "include")
  * - adds JSON headers and CSRF token for unsafe methods
+ * - handles FormData (file uploads) without setting Content-Type
  * - parses JSON response
  * - throws ApiRequestError on non-2xx
  */
@@ -52,9 +53,18 @@ export async function apiRequest<T>(
 
   const upperMethod = method.toUpperCase();
   const isUnsafe = ["POST", "PUT", "PATCH", "DELETE"].includes(upperMethod);
+  const isFormData = body instanceof FormData;
 
+  let finalBody: BodyInit | undefined;
   if (body !== undefined) {
-    finalHeaders["Content-Type"] = "application/json";
+    if (isFormData) {
+      // The browser will set Content-Type with the correct
+      // multipart boundary. Do NOT set it manually.
+      finalBody = body as FormData;
+    } else {
+      finalHeaders["Content-Type"] = "application/json";
+      finalBody = JSON.stringify(body);
+    }
   }
 
   if (isUnsafe) {
@@ -69,7 +79,7 @@ export async function apiRequest<T>(
     method: upperMethod,
     credentials: "include",
     headers: finalHeaders,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+    body: finalBody,
   });
 
   if (response.status === 204) {

@@ -48,13 +48,13 @@ class DocumentListSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
     def get_file_url(self, obj: Document) -> str | None:
+        """Return a relative URL (/media/...) so clients resolve it
+        against their own origin. Absolute URLs would leak the
+        internal container host (backend:8000) when proxied.
+        """
         if not obj.file:
             return None
-        request = self.context.get("request")
-        url = obj.file.url
-        if request is not None:
-            return request.build_absolute_uri(url)
-        return url
+        return obj.file.url
 
 
 class DocumentDetailSerializer(serializers.ModelSerializer):
@@ -112,11 +112,7 @@ class DocumentDetailSerializer(serializers.ModelSerializer):
     def get_file_url(self, obj: Document) -> str | None:
         if not obj.file:
             return None
-        request = self.context.get("request")
-        url = obj.file.url
-        if request is not None:
-            return request.build_absolute_uri(url)
-        return url
+        return obj.file.url
 
     def validate_case(self, value):
         """Ensure the user can only upload to cases in their org."""
@@ -139,13 +135,10 @@ class DocumentDetailSerializer(serializers.ModelSerializer):
             validated_data["uploaded_by"] = request.user
 
         file = validated_data.get("file")
-        if file is not None:
-            # original_filename will be set in model.save if empty
-            pass
 
         instance = super().create(validated_data)
 
-        # Try to extract content_type from the uploaded file
+        # Extract content_type from the uploaded file
         if file is not None and hasattr(file, "content_type"):
             instance.content_type = file.content_type or ""
             instance.save(update_fields=["content_type"])
