@@ -29,7 +29,9 @@ GitHub Issues and project milestones.
 - [x] Referral model with 5 types and status lifecycle
 - [x] Referral CRUD API with complete/cancel/reopen actions
 - [x] Referral UI on case page with filter and detail dialog
-- [ ] Document model with file storage
+- [x] Document model with 5 types and file storage
+- [x] Document upload/download API with multipart support
+- [x] Documents section on case page with filter, upload, download, delete
 
 ## Phase 2 — Workflows ✅
 
