@@ -8,16 +8,17 @@ from .models import AuditEvent
 from .utils import log_audit
 
 
+def _has_method(obj: Any, name: str) -> bool:
+    """Return True if `obj` has a callable attribute `name`."""
+    return callable(getattr(obj, name, None))
+
+
 class AuditLogMixin:
     """Log `view`, `create`, `update`, `delete` actions on DRF ViewSets.
 
-    The mixin hooks into `retrieve`, `create`, `update`, `partial_update`,
-    and `destroy`. Subclasses should set:
-
-        audit_entity_type: str       # e.g. "Patient"
-
-    The mixin is intentionally simple: it logs only operations
-    that target a single object. List operations are not logged.
+    The mixin hooks into `retrieve`, `create`, `update`, and `destroy`.
+    Each hook is a no-op if the parent class does not define the
+    corresponding method (e.g. read-only viewsets).
     """
 
     audit_entity_type: str = "Unknown"
@@ -32,7 +33,14 @@ class AuditLogMixin:
         return response
 
     def create(self, request, *args, **kwargs):
-        response = super().create(request, *args, **kwargs)
+        # Skip if parent does not support creation (read-only viewsets)
+        parent_create = getattr(super(), "create", None)
+        if not callable(parent_create):
+            from rest_framework.exceptions import MethodNotAllowed
+
+            raise MethodNotAllowed(request.method)
+
+        response = parent_create(request, *args, **kwargs)
         try:
             log_audit(
                 request,
@@ -46,7 +54,13 @@ class AuditLogMixin:
         return response
 
     def update(self, request, *args, **kwargs):
-        response = super().update(request, *args, **kwargs)
+        parent_update = getattr(super(), "update", None)
+        if not callable(parent_update):
+            from rest_framework.exceptions import MethodNotAllowed
+
+            raise MethodNotAllowed(request.method)
+
+        response = parent_update(request, *args, **kwargs)
         try:
             obj = self.get_object()
             log_audit(request, AuditEvent.Action.UPDATE, entity=obj)
@@ -55,15 +69,17 @@ class AuditLogMixin:
         return response
 
     def partial_update(self, request, *args, **kwargs):
-        response = super().partial_update(request, *args, **kwargs)
-        try:
-            obj = self.get_object()
-            log_audit(request, AuditEvent.Action.UPDATE, entity=obj)
-        except Exception:  # noqa: BLE001
-            pass
-        return response
+        # partial_update delegates to update in DRF, so we only override update.
+        # Call the parent directly to avoid double-logging.
+        return super().partial_update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
+        parent_destroy = getattr(super(), "destroy", None)
+        if not callable(parent_destroy):
+            from rest_framework.exceptions import MethodNotAllowed
+
+            raise MethodNotAllowed(request.method)
+
         # Get the object BEFORE deletion
         try:
             obj = self.get_object()
@@ -76,7 +92,7 @@ class AuditLogMixin:
         except Exception:  # noqa: BLE001
             entity_type, entity_id, entity_repr = self.audit_entity_type, None, ""
 
-        response = super().destroy(request, *args, **kwargs)
+        response = parent_destroy(request, *args, **kwargs)
 
         try:
             log_audit(

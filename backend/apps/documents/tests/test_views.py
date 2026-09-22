@@ -27,11 +27,14 @@ class TestDocumentList:
         response = api_client.get("/api/documents/")
         assert response.json()["count"] == 2
 
-    def test_file_url_is_absolute(self, api_client, doctor, document):
+    def test_file_url_is_relative(self, api_client, doctor, document):
+        """file_url is relative (/media/...) so it works through
+        the Vite proxy in dev and through Caddy in prod.
+        """
         api_client.force_authenticate(user=doctor)
         response = api_client.get("/api/documents/")
         file_url = response.json()["results"][0]["file_url"]
-        assert file_url.startswith("http://")
+        assert file_url.startswith("/media/")
 
     def test_filter_by_case(self, api_client, doctor, case, document):
         api_client.force_authenticate(user=doctor)
