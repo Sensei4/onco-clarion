@@ -5,6 +5,9 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from apps.audit.mixins import AuditLogMixin, log_custom_action
+from apps.audit.models import AuditEvent
+
 from .models import Referral
 from .serializers import (
     CancelReferralSerializer,
@@ -14,7 +17,7 @@ from .serializers import (
 )
 
 
-class ReferralViewSet(viewsets.ModelViewSet):
+class ReferralViewSet(AuditLogMixin, viewsets.ModelViewSet):
     """CRUD for referrals, scoped to the current user's organization.
 
     Custom actions:
@@ -23,6 +26,7 @@ class ReferralViewSet(viewsets.ModelViewSet):
       - POST /api/referrals/{id}/reopen/
     """
 
+    audit_entity_type = "Referral"
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self) -> QuerySet[Referral]:
@@ -106,6 +110,8 @@ class ReferralViewSet(viewsets.ModelViewSet):
         referral.completed_by = request.user
         referral.save()
 
+        log_custom_action(request, referral, AuditEvent.Action.UPDATE)
+
         return Response(ReferralDetailSerializer(referral, context={"request": request}).data)
 
     @action(detail=True, methods=["post"])
@@ -131,6 +137,8 @@ class ReferralViewSet(viewsets.ModelViewSet):
         referral.status = Referral.Status.CANCELLED
         referral.save()
 
+        log_custom_action(request, referral, AuditEvent.Action.UPDATE)
+
         return Response(ReferralDetailSerializer(referral, context={"request": request}).data)
 
     @action(detail=True, methods=["post"])
@@ -149,5 +157,7 @@ class ReferralViewSet(viewsets.ModelViewSet):
         referral.result_received_at = None
         referral.completed_by = None
         referral.save()
+
+        log_custom_action(request, referral, AuditEvent.Action.UPDATE)
 
         return Response(ReferralDetailSerializer(referral, context={"request": request}).data)

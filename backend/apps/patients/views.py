@@ -1,13 +1,14 @@
-# Create your views here.
 from django.db.models import Q, QuerySet
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
+
+from apps.audit.mixins import AuditLogMixin
 
 from .models import Patient
 from .serializers import PatientDetailSerializer, PatientListSerializer
 
 
-class PatientViewSet(viewsets.ModelViewSet):
+class PatientViewSet(AuditLogMixin, viewsets.ModelViewSet):
     """CRUD for patients, scoped to the current user's organization.
 
     - Listing supports search by full_name and medical_record_number.
@@ -17,6 +18,7 @@ class PatientViewSet(viewsets.ModelViewSet):
     - Superusers can read/write patients across all organizations.
     """
 
+    audit_entity_type = "Patient"
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self) -> QuerySet[Patient]:

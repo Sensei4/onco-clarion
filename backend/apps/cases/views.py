@@ -5,6 +5,8 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from apps.audit.mixins import AuditLogMixin
+
 from .models import CancerCase
 from .serializers import (
     CancerCaseDetailSerializer,
@@ -14,9 +16,10 @@ from .serializers import (
 )
 
 
-class CancerCaseViewSet(viewsets.ModelViewSet):
+class CancerCaseViewSet(AuditLogMixin, viewsets.ModelViewSet):
     """CRUD for cancer cases, scoped to the current user's organization."""
 
+    audit_entity_type = "CancerCase"
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self) -> QuerySet[CancerCase]:
@@ -89,6 +92,12 @@ class CancerCaseViewSet(viewsets.ModelViewSet):
             )
 
         case.save()
+
+        # Audit the transition (in addition to the StatusTransition record)
+        from apps.audit.mixins import log_custom_action
+        from apps.audit.models import AuditEvent
+
+        log_custom_action(request, case, AuditEvent.Action.UPDATE)
         return Response(CancerCaseDetailSerializer(case).data)
 
     @action(

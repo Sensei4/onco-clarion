@@ -2,6 +2,8 @@ from django.db.models import Q, QuerySet
 from rest_framework import mixins, viewsets
 from rest_framework.permissions import IsAuthenticated
 
+from apps.audit.mixins import AuditLogMixin
+
 from .models import (
     Event,
     EventConsilium,
@@ -89,12 +91,14 @@ class BaseEventReadViewSet(
         return context
 
 
-class EventViewSet(BaseEventReadViewSet):
+class EventViewSet(AuditLogMixin, BaseEventReadViewSet):
     """Read-only list and retrieve for all events.
 
     Creation is handled by per-subtype viewsets below.
     POST/PUT/PATCH/DELETE are not allowed on this endpoint.
     """
+
+    audit_entity_type = "Event"
 
     queryset = Event.objects.all().order_by("-scheduled_at")
 
@@ -105,6 +109,7 @@ class EventViewSet(BaseEventReadViewSet):
 
 
 class BaseEventWriteViewSet(
+    AuditLogMixin,
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
@@ -112,6 +117,8 @@ class BaseEventWriteViewSet(
     viewsets.GenericViewSet,
 ):
     """Base for subtype-specific viewsets.
+
+    audit_entity_type = "Event"
 
     Supports create, retrieve, update, delete — but not list.
     Listing is done via EventViewSet with ?type=... filter.

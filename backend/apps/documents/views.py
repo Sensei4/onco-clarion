@@ -6,6 +6,9 @@ from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from apps.audit.mixins import AuditLogMixin, log_custom_action
+from apps.audit.models import AuditEvent
+
 from .models import Document
 from .serializers import (
     DocumentDetailSerializer,
@@ -14,13 +17,14 @@ from .serializers import (
 )
 
 
-class DocumentViewSet(viewsets.ModelViewSet):
+class DocumentViewSet(AuditLogMixin, viewsets.ModelViewSet):
     """CRUD for case documents, scoped to the current user's organization.
 
     Upload uses multipart/form-data.
     Files can be downloaded via /api/documents/{id}/download/.
     """
 
+    audit_entity_type = "Document"
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
@@ -84,13 +88,20 @@ class DocumentViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["get"], url_path="download")
     def download(self, request, pk=None):
-        """Serve the file with proper permission checks."""
+        """Serve the file with proper permission checks.
+
+        Every download is logged as a separate audit event — this is
+        a critical trail for medical data.
+        """
         document = self.get_object()
         if not document.file:
             return Response(
                 {"detail": "File is missing."},
                 status=status.HTTP_404_NOT_FOUND,
             )
+
+        log_custom_action(request, document, AuditEvent.Action.DOWNLOAD)
+
         response = FileResponse(
             document.file.open("rb"),
             as_attachment=True,
