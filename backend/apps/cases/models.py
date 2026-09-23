@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from django_fsm import FSMField, transition
 
 
@@ -202,7 +203,7 @@ class StatusTransition(models.Model):
         null=True,
         blank=True,
     )
-    transitioned_at = models.DateTimeField(auto_now_add=True)
+    transitioned_at = models.DateTimeField(default=timezone.now)
     reason = models.TextField(blank=True)
 
     class Meta:
