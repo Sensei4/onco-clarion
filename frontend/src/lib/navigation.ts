@@ -1,4 +1,5 @@
 import {
+  BarChart3,
   Calendar,
   ClipboardList,
   Eye,
@@ -47,6 +48,12 @@ export const navigation: NavItem[] = [
     href: "/observation",
     icon: Eye,
     description: "Follow-up",
+  },
+  {
+    name: "Reports",
+    href: "/reports",
+    icon: BarChart3,
+    description: "Analytics",
   },
   {
     name: "Audit log",

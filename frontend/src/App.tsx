@@ -1,19 +1,20 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
-import { AuthProvider } from "@/features/auth/AuthContext";
-import { RequireAuth } from "@/features/auth/RequireAuth";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { AuthProvider } from "@/features/auth/AuthContext";
+import { RequireAdmin } from "@/features/auth/RequireAdmin";
+import { RequireAuth } from "@/features/auth/RequireAuth";
+import { Audit } from "@/pages/Audit";
 import { CaseDetail } from "@/pages/CaseDetail";
 import { Dashboard } from "@/pages/Dashboard";
 import { Login } from "@/pages/Login";
+import { Observation } from "@/pages/Observation";
 import { PatientDetail } from "@/pages/PatientDetail";
 import { PatientsList } from "@/pages/PatientsList";
+import { Reports } from "@/pages/Reports";
 import { Schedule } from "@/pages/Schedule";
-import { Observation } from "@/pages/Observation";
 import { WaitingList } from "@/pages/WaitingList";
-import { RequireAdmin } from "@/features/auth/RequireAdmin";
-import { Audit } from "@/pages/Audit";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -37,12 +38,11 @@ export default function App() {
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/patients" element={<PatientsList />} />
                 <Route path="/patients/:id" element={<PatientDetail />} />
+                <Route path="/cases/:id" element={<CaseDetail />} />
                 <Route path="/schedule" element={<Schedule />} />
-                <Route path="/schedule" element={<Schedule />} />
-                <Route path="/waiting-list" element={<WaitingList />} />
                 <Route path="/waiting-list" element={<WaitingList />} />
                 <Route path="/observation" element={<Observation />} />
-                <Route path="/cases/:id" element={<CaseDetail />} />
+                <Route path="/reports" element={<Reports />} />
                 <Route element={<RequireAdmin />}>
                   <Route path="/audit" element={<Audit />} />
                 </Route>
