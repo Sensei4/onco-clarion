@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     "apps.referrals",
     "apps.documents",
     "apps.audit",
+    "apps.reports",
 ]
 
 MIDDLEWARE = [
