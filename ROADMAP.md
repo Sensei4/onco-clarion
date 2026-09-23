@@ -50,9 +50,11 @@ GitHub Issues and project milestones.
 - [ ] FHIR export (Patient, Condition, Encounter)
 - [ ] Cross-organization data exchange (design phase)
 
-## Phase 4 — Hardening
+## Phase 4 — Hardening (in progress)
 
-- [ ] Audit log UI (user access log)
+- [x] AuditEvent model with automatic logging via AuditLogMixin
+- [x] Audit log API (admin-only) with filters
+- [x] Audit log UI (admin-only page with filters and search)
 - [ ] Role-based access control (nurse, lab, consilium member)
 - [ ] Localization framework (i18n scaffolding; English UI first)
 - [ ] Deployment guide (VPS + Caddy + Docker Compose)
