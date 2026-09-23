@@ -12,6 +12,8 @@ import { PatientsList } from "@/pages/PatientsList";
 import { Schedule } from "@/pages/Schedule";
 import { Observation } from "@/pages/Observation";
 import { WaitingList } from "@/pages/WaitingList";
+import { RequireAdmin } from "@/features/auth/RequireAdmin";
+import { Audit } from "@/pages/Audit";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -41,6 +43,9 @@ export default function App() {
                 <Route path="/waiting-list" element={<WaitingList />} />
                 <Route path="/observation" element={<Observation />} />
                 <Route path="/cases/:id" element={<CaseDetail />} />
+                <Route element={<RequireAdmin />}>
+                  <Route path="/audit" element={<Audit />} />
+                </Route>
               </Route>
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />

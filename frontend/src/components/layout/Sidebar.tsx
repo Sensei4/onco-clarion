@@ -1,9 +1,18 @@
 import { NavLink } from "react-router-dom";
 
+import { useAuth } from "@/features/auth/useAuth";
 import { navigation } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 
 export function Sidebar() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin" || user?.is_superuser === true;
+
+  // Filter out admin-only items for non-admin users
+  const visibleNavigation = navigation.filter(
+    (item) => !item.adminOnly || isAdmin,
+  );
+
   return (
     <aside className="hidden md:flex md:flex-col md:w-64 md:shrink-0 border-r bg-card">
       <div className="flex h-16 items-center border-b px-6">
@@ -13,7 +22,7 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 overflow-y-auto p-4 space-y-1">
-        {navigation.map((item) => {
+        {visibleNavigation.map((item) => {
           const Icon = item.icon;
 
           if (item.disabled) {

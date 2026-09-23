@@ -3,6 +3,7 @@ import {
   ClipboardList,
   Eye,
   LayoutDashboard,
+  ShieldCheck,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -13,6 +14,7 @@ export interface NavItem {
   icon: LucideIcon;
   disabled?: boolean;
   description?: string;
+  adminOnly?: boolean;
 }
 
 export const navigation: NavItem[] = [
@@ -45,5 +47,12 @@ export const navigation: NavItem[] = [
     href: "/observation",
     icon: Eye,
     description: "Follow-up",
+  },
+  {
+    name: "Audit log",
+    href: "/audit",
+    icon: ShieldCheck,
+    description: "Security audit",
+    adminOnly: true,
   },
 ];
