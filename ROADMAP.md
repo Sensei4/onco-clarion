@@ -43,9 +43,11 @@ GitHub Issues and project milestones.
 - [ ] Tumor board recording workflow
 - [ ] Hospitalization workflow
 
-## Phase 3 — Reporting and interoperability
+## Phase 3 — Reporting (in progress)
 
-- [ ] Basic reports (patients per stage, per status)
+- [x] Basic reports: cases by status, cases by stage, waiting time, events by type, top diagnoses
+- [x] Reports page with bar charts and date filter
+- [ ] CSV export
 - [ ] ICD-O-3 and ICD-10 reference data
 - [ ] FHIR export (Patient, Condition, Encounter)
 - [ ] Cross-organization data exchange (design phase)
