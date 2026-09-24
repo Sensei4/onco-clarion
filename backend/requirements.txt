@@ -21,3 +21,6 @@ django-fsm-2==4.2.4
 
 # File handling
 Pillow==12.3.0
+
+# HTTP client for ICD-API
+requests==2.32.3
