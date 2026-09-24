@@ -10,7 +10,8 @@ This command:
   2. For each chapter, walks the subtree breadth-first.
   3. Saves MmsEntity records in batches.
   4. Collects foundation URIs and syncs FoundationEntity records.
-  5. Logs progress to Icd11SyncLog.
+  5. Propagates synonyms from FoundationEntity to MmsEntity.
+  6. Logs progress to Icd11SyncLog.
 
 Idempotent: re-running updates existing records (update_or_create by URI).
 Interruptible: progress is saved after each chapter.
@@ -41,6 +42,7 @@ logger = logging.getLogger(__name__)
 
 MMS_BATCH_SIZE = 100
 FOUNDATION_BATCH_SIZE = 100
+SYNONYM_BATCH_SIZE = 500
 PROGRESS_EVERY = 200
 
 
@@ -203,6 +205,10 @@ class Command(BaseCommand):
             dry_run=dry_run,
         )
 
+        # Step 5: propagate synonyms from foundation to MMS
+        self.stdout.write(self.style.MIGRATE_HEADING("--- Synonyms ---"))
+        self._propagate_synonyms_from_foundation(dry_run=dry_run)
+
         return total_mms, foundation_count
 
     def _sync_chapter(
@@ -362,6 +368,85 @@ class Command(BaseCommand):
                 self.stdout.write(f"  Foundation progress: {count}/{len(foundation_uris)}.")
 
         return count
+
+    def _propagate_synonyms_from_foundation(self, *, dry_run: bool) -> int:
+        """Copy synonyms from FoundationEntity to MmsEntity by foundation_uri.
+
+        Runs after both MMS and foundation syncs. For every MMS entity
+        with empty synonyms, finds the linked FoundationEntity and copies
+        its synonyms list.
+
+        Residual entities (URI ending in /unspecified or /other) have no
+        `source` field of their own — we use the parent's foundation URI
+        by stripping the suffix.
+
+        Returns the number of MMS entities updated.
+        """
+        if dry_run:
+            return 0
+
+        # Build a mapping foundation_uri -> synonyms
+        synonyms_map: dict[str, list[str]] = {
+            f.uri: list(f.synonyms or [])
+            for f in FoundationEntity.objects.exclude(synonyms=[])
+            .only("uri", "synonyms")
+            .iterator()
+        }
+
+        if not synonyms_map:
+            self.stdout.write("  No foundation synonyms to propagate.")
+            return 0
+
+        self.stdout.write(f"  Propagating synonyms from {len(synonyms_map)} foundation entities...")
+
+        # Update MMS entities whose synonyms are empty
+        updated = 0
+        batch: list[MmsEntity] = []
+        for entity in (
+            MmsEntity.objects.filter(synonyms=[])
+            .only("id", "uri", "foundation_uri", "synonyms")
+            .iterator()
+        ):
+            # Determine the foundation URI to look up.
+            foundation_uri = entity.foundation_uri
+            if not foundation_uri:
+                # Try parent's foundation for residual entities
+                base_uri = self._strip_residual_suffix(entity.uri)
+                if base_uri != entity.uri:
+                    # Look up the parent MMS entity to get its foundation_uri
+                    parent_mms = (
+                        MmsEntity.objects.filter(uri=base_uri).only("foundation_uri").first()
+                    )
+                    if parent_mms and parent_mms.foundation_uri:
+                        foundation_uri = parent_mms.foundation_uri
+
+            if not foundation_uri:
+                continue
+
+            syns = synonyms_map.get(foundation_uri)
+            if syns:
+                entity.synonyms = syns
+                batch.append(entity)
+                updated += 1
+
+            if len(batch) >= SYNONYM_BATCH_SIZE:
+                MmsEntity.objects.bulk_update(batch, ["synonyms"])
+                batch = []
+                self.stdout.write(f"  Synonyms updated: {updated}")
+
+        if batch:
+            MmsEntity.objects.bulk_update(batch, ["synonyms"])
+
+        self.stdout.write(self.style.SUCCESS(f"  Synonyms propagated to {updated} MMS entities."))
+        return updated
+
+    @staticmethod
+    def _strip_residual_suffix(uri: str) -> str:
+        """Strip '/unspecified' or '/other' suffix from an MMS URI."""
+        for suffix in ("/unspecified", "/other"):
+            if uri.endswith(suffix):
+                return uri[: -len(suffix)]
+        return uri
 
     # ------------------------------------------------------------------
     # Helpers
