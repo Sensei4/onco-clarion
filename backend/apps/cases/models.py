@@ -63,6 +63,13 @@ class CancerCase(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    icd11_mms_uri = models.CharField(
+        max_length=255,
+        blank=True,
+        db_index=True,
+        help_text="ICD-11 MMS entity URI",
+    )
+
     class Meta:
         ordering = ["-created_at"]
         indexes = [

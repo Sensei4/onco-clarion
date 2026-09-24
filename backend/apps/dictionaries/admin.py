@@ -1,21 +1,47 @@
 from django.contrib import admin
 
-from .models import DiagnosisCode, MorphologyCode
+from .models import FoundationEntity, Icd11SyncLog, MmsEntity
 
 
-@admin.register(DiagnosisCode)
-class DiagnosisCodeAdmin(admin.ModelAdmin):
-    list_display = ("code", "name", "name_en", "block", "system", "is_active")
-    list_filter = ("system", "block", "is_active")
-    search_fields = ("code", "name", "name_en")
-    readonly_fields = ("created_at",)
-    ordering = ("code",)
+@admin.register(FoundationEntity)
+class FoundationEntityAdmin(admin.ModelAdmin):
+    list_display = ("uri", "title", "chapter", "last_synced_at")
+    list_filter = ("chapter",)
+    search_fields = ("uri", "title")
+    readonly_fields = ("last_synced_at",)
 
 
-@admin.register(MorphologyCode)
-class MorphologyCodeAdmin(admin.ModelAdmin):
-    list_display = ("code", "name", "name_en", "behavior", "is_active")
-    list_filter = ("behavior", "is_active")
-    search_fields = ("code", "name", "name_en")
-    readonly_fields = ("created_at",)
-    ordering = ("code",)
+@admin.register(MmsEntity)
+class MmsEntityAdmin(admin.ModelAdmin):
+    list_display = ("the_code", "title", "chapter", "is_leaf", "last_synced_at")
+    list_filter = ("chapter", "is_leaf", "is_residual_unspecified", "is_residual_other")
+    search_fields = ("uri", "the_code", "title")
+    readonly_fields = ("last_synced_at",)
+
+
+@admin.register(Icd11SyncLog)
+class Icd11SyncLogAdmin(admin.ModelAdmin):
+    list_display = (
+        "release_id",
+        "started_at",
+        "finished_at",
+        "status",
+        "foundation_count",
+        "mms_count",
+    )
+    list_filter = ("status", "release_id")
+    readonly_fields = (
+        "release_id",
+        "started_at",
+        "finished_at",
+        "status",
+        "foundation_count",
+        "mms_count",
+        "error_message",
+    )
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False

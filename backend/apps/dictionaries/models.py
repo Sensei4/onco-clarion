@@ -1,80 +1,127 @@
 from django.db import models
 
 
-class DiagnosisCode(models.Model):
-    """Reference code from a medical classification.
+class FoundationEntity(models.Model):
+    """ICD-11 foundation entity (semantic layer).
 
-    Currently used for ICD-10 topography (C00-C97 blocks).
-    Later will also hold ICD-O-3 morphology codes.
+    Source: http://id.who.int/icd/entity/{id}
+    Stores: URI, title, definitions, synonyms, parent/child relations.
+    No codes — codes are in the MMS layer.
     """
 
-    class System(models.TextChoices):
-        ICD10 = "icd10", "ICD-10"
-        ICD_O_3 = "icd_o_3", "ICD-O-3"
-
-    id = models.BigAutoField(primary_key=True)
-    system = models.CharField(
-        max_length=16,
-        choices=System.choices,
-        default=System.ICD10,
-    )
-    code = models.CharField(
-        max_length=16,
-        db_index=True,
-        help_text="e.g. 'C50.9'",
-    )
-    name = models.CharField(max_length=512)
-    name_en = models.CharField(max_length=512, blank=True)
-    chapter = models.CharField(max_length=8, blank=True)
-    block = models.CharField(max_length=16, blank=True, db_index=True)
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ["code"]
-        constraints = [
-            models.UniqueConstraint(
-                fields=["system", "code"],
-                name="unique_code_per_system",
-            ),
-        ]
-        indexes = [
-            models.Index(fields=["system", "code"]),
-            models.Index(fields=["system", "block"]),
-        ]
-
-    def __str__(self) -> str:
-        return f"{self.code} — {self.name}"
-
-
-class MorphologyCode(models.Model):
-    """ICD-O-3 morphology code (e.g. 8140/3 — Adenocarcinoma, NOS).
-
-    Stored separately because the structure is different from ICD-10.
-    """
-
-    id = models.BigAutoField(primary_key=True)
-    code = models.CharField(
-        max_length=16,
+    uri = models.CharField(
+        max_length=255,
         unique=True,
         db_index=True,
-        help_text="e.g. '8140/3'",
+        help_text="e.g. http://id.who.int/icd/entity/1047754165",
     )
-    name = models.CharField(max_length=512)
-    name_en = models.CharField(max_length=512, blank=True)
-    behavior = models.CharField(
-        max_length=8,
+    title = models.CharField(max_length=1024, db_index=True)
+    definition = models.TextField(blank=True)
+    long_definition = models.TextField(blank=True)
+    synonyms = models.JSONField(
+        default=list,
         blank=True,
-        help_text="/0 benign, /1 uncertain, /2 in situ, /3 malignant, /6 metastatic",
+        help_text="List of synonym strings",
     )
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    parent_uris = models.JSONField(default=list, blank=True)
+    child_uris = models.JSONField(default=list, blank=True)
+    exclusions = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List of {label, uri} dicts",
+    )
+    browser_url = models.URLField(max_length=512, blank=True)
+    chapter = models.CharField(max_length=8, blank=True, db_index=True)
+    last_synced_at = models.DateTimeField()
 
     class Meta:
-        ordering = ["code"]
+        ordering = ["title"]
         indexes = [
-            models.Index(fields=["code"]),
+            models.Index(fields=["title"]),
+            models.Index(fields=["chapter"]),
         ]
 
     def __str__(self) -> str:
-        return f"{self.code} — {self.name}"
+        return f"{self.title} ({self.uri})"
+
+
+class MmsEntity(models.Model):
+    """ICD-11 MMS (Mortality and Morbidity Statistics) entity.
+
+    Source: http://id.who.int/icd/release/11/{release}/mms/{id}
+    Stores: URI, theCode, title, chapter, links to foundation.
+    """
+
+    uri = models.CharField(
+        max_length=255,
+        unique=True,
+        db_index=True,
+        help_text="e.g. http://id.who.int/icd/release/11/2026-01/mms/1047754165/unspecified",
+    )
+    foundation_uri = models.CharField(
+        max_length=255,
+        blank=True,
+        db_index=True,
+        help_text="Link to the foundation entity",
+    )
+    the_code = models.CharField(
+        max_length=64,
+        blank=True,
+        db_index=True,
+        help_text="e.g. 2C6Z (may include postcoordination, e.g. 2E0Y&XA12C1)",
+    )
+    title = models.CharField(max_length=1024, db_index=True)
+    chapter = models.CharField(max_length=8, blank=True, db_index=True)
+    is_leaf = models.BooleanField(default=False)
+    is_residual_unspecified = models.BooleanField(default=False)
+    is_residual_other = models.BooleanField(default=False)
+    parent_uris = models.JSONField(default=list, blank=True)
+    child_uris = models.JSONField(default=list, blank=True)
+    synonyms = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Synonym strings extracted from matchingPVs",
+    )
+    last_synced_at = models.DateTimeField()
+
+    class Meta:
+        ordering = ["the_code"]
+        indexes = [
+            models.Index(fields=["the_code"]),
+            models.Index(fields=["chapter"]),
+            models.Index(fields=["foundation_uri"]),
+        ]
+
+    def __str__(self) -> str:
+        code = self.the_code or "—"
+        return f"[{code}] {self.title}"
+
+
+class Icd11SyncLog(models.Model):
+    """History of ICD-11 synchronization runs."""
+
+    class Status(models.TextChoices):
+        RUNNING = "running", "Running"
+        SUCCESS = "success", "Success"
+        FAILED = "failed", "Failed"
+
+    release_id = models.CharField(
+        max_length=32,
+        help_text="e.g. 2026-01",
+    )
+    started_at = models.DateTimeField(auto_now_add=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+    status = models.CharField(
+        max_length=16,
+        choices=Status.choices,
+        default=Status.RUNNING,
+    )
+    foundation_count = models.IntegerField(default=0)
+    mms_count = models.IntegerField(default=0)
+    error_message = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["-started_at"]
+
+    def __str__(self) -> str:
+        return f"Sync {self.release_id} at {self.started_at} ({self.status})"
