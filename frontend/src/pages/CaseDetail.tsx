@@ -174,7 +174,7 @@ export function CaseDetail() {
                     href={`https://icd.who.int/browse/2026-01/mms/en#${extractIcd11Id(caseData.icd11_mms_uri)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs text-muted-foreground hover:underline font-mono truncate max-w-[220px]"
+                    className="text-xs text-muted-foreground hover:underline font-mono truncate max-w-55"
                     title={caseData.icd11_mms_uri}
                   >
                     {caseData.icd11_mms_uri.split("/").slice(-2).join("/")}
