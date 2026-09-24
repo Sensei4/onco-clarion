@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "apps.documents",
     "apps.audit",
     "apps.reports",
+    "apps.dictionaries",
 ]
 
 MIDDLEWARE = [
