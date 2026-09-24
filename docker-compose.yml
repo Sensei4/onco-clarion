@@ -16,6 +16,17 @@ services:
       timeout: 5s
       retries: 10
 
+  icd-api:
+    image: whoicd/icd-api
+    restart: unless-stopped
+    environment:
+      acceptLicense: "true"
+      saveAnalytics: "false"
+    volumes:
+      - icd_api_data:/tmp
+    expose:
+      - "80"
+
   backend:
     build:
       context: ./backend
@@ -30,6 +41,10 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      icd-api:
+        condition: service_started
+    environment:
+      ICD_API_URL: "http://icd-api:80"
     command: python manage.py runserver 0.0.0.0:8000
 
   frontend:
@@ -54,3 +69,4 @@ services:
 volumes:
   postgres_data:
   frontend_node_modules:
+  icd_api_data:
