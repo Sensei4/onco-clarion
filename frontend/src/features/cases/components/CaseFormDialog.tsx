@@ -13,6 +13,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCreateCase } from "@/features/cases/hooks";
 import type { CreateCasePayload } from "@/features/cases/types";
+import {
+  Icd11Search,
+  type Icd11Selection,
+} from "@/features/dictionaries/components/Icd11Search";
 import { ApiRequestError } from "@/lib/api";
 
 interface CaseFormDialogProps {
@@ -32,8 +36,7 @@ export function CaseFormDialog({
 }: CaseFormDialogProps) {
   const createCase = useCreateCase();
 
-  const [diagnosisCode, setDiagnosisCode] = useState("");
-  const [diagnosisText, setDiagnosisText] = useState("");
+  const [diagnosis, setDiagnosis] = useState<Icd11Selection | null>(null);
   const [verificationDate, setVerificationDate] = useState("");
   const [tnmT, setTnmT] = useState("");
   const [tnmN, setTnmN] = useState("");
@@ -43,8 +46,7 @@ export function CaseFormDialog({
 
   useEffect(() => {
     if (!open) {
-      setDiagnosisCode("");
-      setDiagnosisText("");
+      setDiagnosis(null);
       setVerificationDate("");
       setTnmT("");
       setTnmN("");
@@ -58,11 +60,17 @@ export function CaseFormDialog({
     e.preventDefault();
     setError(null);
 
+    if (!diagnosis) {
+      setError("Please select an ICD-11 diagnosis code.");
+      return;
+    }
+
     const payload: CreateCasePayload = {
       patient: patientId,
       organization: organizationId,
-      diagnosis_code: diagnosisCode.trim(),
-      diagnosis_text: diagnosisText.trim(),
+      icd11_mms_uri: diagnosis.uri,
+      diagnosis_code: diagnosis.the_code,
+      diagnosis_text: diagnosis.title,
       verification_date: verificationDate || null,
       tnm_t: tnmT.trim(),
       tnm_n: tnmN.trim(),
@@ -97,28 +105,15 @@ export function CaseFormDialog({
 
           <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto pr-2">
             <div className="space-y-2">
-              <Label htmlFor="diagnosis_code">
-                Diagnosis code{" "}
-                <span className="text-muted-foreground">
-                  (ICD-O-3 / ICD-10)
-                </span>
-              </Label>
-              <Input
-                id="diagnosis_code"
-                value={diagnosisCode}
-                onChange={(e) => setDiagnosisCode(e.target.value)}
-                placeholder="C50.9"
+              <Label>Diagnosis (ICD-11)</Label>
+              <Icd11Search
+                value={diagnosis}
+                onChange={setDiagnosis}
+                placeholder="Search by code or name (e.g. 2C61 or breast cancer)"
               />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="diagnosis_text">Diagnosis (free text)</Label>
-              <Input
-                id="diagnosis_text"
-                value={diagnosisText}
-                onChange={(e) => setDiagnosisText(e.target.value)}
-                placeholder="Breast cancer, unspecified"
-              />
+              <p className="text-xs text-muted-foreground">
+                Type at least 2 characters. Search by code, title, or synonym.
+              </p>
             </div>
 
             <div className="space-y-2">

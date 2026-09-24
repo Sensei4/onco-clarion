@@ -16,6 +16,10 @@ import type {
   CancerCaseDetail,
   UpdateCasePayload,
 } from "@/features/cases/types";
+import {
+  Icd11Search,
+  type Icd11Selection,
+} from "@/features/dictionaries/components/Icd11Search";
 import { ApiRequestError } from "@/lib/api";
 
 interface CaseEditDialogProps {
@@ -31,8 +35,16 @@ export function CaseEditDialog({
 }: CaseEditDialogProps) {
   const updateCase = useUpdateCase(caseData.id);
 
-  const [diagnosisCode, setDiagnosisCode] = useState(caseData.diagnosis_code);
-  const [diagnosisText, setDiagnosisText] = useState(caseData.diagnosis_text);
+  // Initialize from existing data
+  const [diagnosis, setDiagnosis] = useState<Icd11Selection | null>(
+    caseData.icd11_mms_uri
+      ? {
+          uri: caseData.icd11_mms_uri,
+          the_code: caseData.diagnosis_code,
+          title: caseData.diagnosis_text,
+        }
+      : null,
+  );
   const [verificationDate, setVerificationDate] = useState(
     caseData.verification_date ?? "",
   );
@@ -44,8 +56,15 @@ export function CaseEditDialog({
 
   useEffect(() => {
     if (open) {
-      setDiagnosisCode(caseData.diagnosis_code);
-      setDiagnosisText(caseData.diagnosis_text);
+      setDiagnosis(
+        caseData.icd11_mms_uri
+          ? {
+              uri: caseData.icd11_mms_uri,
+              the_code: caseData.diagnosis_code,
+              title: caseData.diagnosis_text,
+            }
+          : null,
+      );
       setVerificationDate(caseData.verification_date ?? "");
       setTnmT(caseData.tnm_t);
       setTnmN(caseData.tnm_n);
@@ -60,8 +79,9 @@ export function CaseEditDialog({
     setError(null);
 
     const payload: UpdateCasePayload = {
-      diagnosis_code: diagnosisCode.trim(),
-      diagnosis_text: diagnosisText.trim(),
+      icd11_mms_uri: diagnosis?.uri ?? "",
+      diagnosis_code: diagnosis?.the_code ?? "",
+      diagnosis_text: diagnosis?.title ?? "",
       verification_date: verificationDate || null,
       tnm_t: tnmT.trim(),
       tnm_n: tnmN.trim(),
@@ -94,25 +114,11 @@ export function CaseEditDialog({
 
           <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto pr-2">
             <div className="space-y-2">
-              <Label htmlFor="edit_diagnosis_code">
-                Diagnosis code{" "}
-                <span className="text-muted-foreground">
-                  (ICD-O-3 / ICD-10)
-                </span>
-              </Label>
-              <Input
-                id="edit_diagnosis_code"
-                value={diagnosisCode}
-                onChange={(e) => setDiagnosisCode(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit_diagnosis_text">Diagnosis (free text)</Label>
-              <Input
-                id="edit_diagnosis_text"
-                value={diagnosisText}
-                onChange={(e) => setDiagnosisText(e.target.value)}
+              <Label>Diagnosis (ICD-11)</Label>
+              <Icd11Search
+                value={diagnosis}
+                onChange={setDiagnosis}
+                placeholder="Search by code or name"
               />
             </div>
 

@@ -5,13 +5,13 @@ import { ArrowLeft, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DocumentsSection } from "@/features/documents/components/DocumentsSection";
 import { Separator } from "@/components/ui/separator";
 import { CaseEditDialog } from "@/features/cases/components/CaseEditDialog";
 import { CaseTimeline } from "@/features/cases/components/CaseTimeline";
 import { CaseTransitionButtons } from "@/features/cases/components/CaseTransitionButtons";
 import { useCase, useTransitions } from "@/features/cases/hooks";
 import type { CaseStatus } from "@/features/cases/types";
+import { DocumentsSection } from "@/features/documents/components/DocumentsSection";
 import { EventsSection } from "@/features/events/components/EventsSection";
 import { ReferralsSection } from "@/features/referrals/components/ReferralsSection";
 
@@ -63,6 +63,13 @@ function formatDateTime(iso: string): string {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+function extractIcd11Id(uri: string): string {
+  // Extract numeric id from something like:
+  // http://id.who.int/icd/release/11/2026-01/mms/1047754165/unspecified
+  const match = uri.match(/\/mms\/(\d+)/);
+  return match ? match[1] : "";
 }
 
 export function CaseDetail() {
@@ -152,12 +159,29 @@ export function CaseDetail() {
               </span>
             </div>
             <Separator />
-            <div className="flex justify-between gap-4">
-              <span className="text-muted-foreground">Text</span>
+            <div className="flex flex-col gap-1">
+              <span className="text-muted-foreground">Description</span>
               <span className="text-right">
                 {caseData.diagnosis_text || "—"}
               </span>
             </div>
+            {caseData.icd11_mms_uri && (
+              <>
+                <Separator />
+                <div className="flex justify-between gap-4 items-center">
+                  <span className="text-muted-foreground">ICD-11</span>
+                  <a
+                    href={`https://icd.who.int/browse/2026-01/mms/en#${extractIcd11Id(caseData.icd11_mms_uri)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-muted-foreground hover:underline font-mono truncate max-w-[220px]"
+                    title={caseData.icd11_mms_uri}
+                  >
+                    {caseData.icd11_mms_uri.split("/").slice(-2).join("/")}
+                  </a>
+                </div>
+              </>
+            )}
             <Separator />
             <div className="flex justify-between">
               <span className="text-muted-foreground">Verification date</span>

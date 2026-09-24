@@ -17,6 +17,7 @@ export interface CancerCase {
   organization: number;
   organization_name: string;
   diagnosis_code: string;
+  icd11_mms_uri: string;
   stage: string;
   status: CaseStatus;
   created_at: string;
@@ -24,6 +25,7 @@ export interface CancerCase {
 
 export interface CancerCaseDetail extends CancerCase {
   diagnosis_text: string;
+  icd11_mms_uri: string;
   verification_date: string | null;
   tnm_t: string;
   tnm_n: string;
@@ -51,6 +53,7 @@ export interface CreateCasePayload {
   organization: number;
   diagnosis_code?: string;
   diagnosis_text?: string;
+  icd11_mms_uri?: string;
   verification_date?: string | null;
   tnm_t?: string;
   tnm_n?: string;
