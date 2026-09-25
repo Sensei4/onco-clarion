@@ -57,6 +57,17 @@ A 10-minute walkthrough of a complete patient journey: from registering a new pa
   - 9 statuses: `new → diagnostic → consilium → waiting_hospitalization → in_treatment → observation → remission`, plus `relapse → consilium` (cycle) and `terminal`.
   - Every transition is **audited** (who, when, why).
   - Transitions can only be performed via the FSM API.
+  - **ICD-11 integration** (WHO release 2026-01, fully local):
+  - Full ICD-11 MMS + Foundation synced into PostgreSQL
+    (37,211 + 31,837 entities)
+  - Autocomplete search by code, title, or synonym — millisecond
+    response, no runtime dependency on WHO servers
+  - Cancer case diagnosis linked to ICD-11 MMS entity URI,
+    with deep link to the WHO ICD-11 Browser
+  - **Currently limited to chapter 02 (Neoplasms) in the Case form.**
+    The underlying API supports all 28 chapters; broader search can be
+    enabled when the project adds comorbidity tracking or on community
+    feedback.
 - **Clinical events** of 6 types:
   - Primary visit, Follow-up visit, Observation visit
   - Consilium (with participants and decision)

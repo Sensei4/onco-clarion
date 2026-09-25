@@ -43,12 +43,18 @@ GitHub Issues and project milestones.
 - [ ] Tumor board recording workflow
 - [ ] Hospitalization workflow
 
-## Phase 3 — Reporting (in progress)
+## Phase 3 — Reporting and interoperability (in progress)
 
 - [x] Basic reports: cases by status, cases by stage, waiting time, events by type, top diagnoses
 - [x] Reports page with bar charts and date filter
-- [ ] CSV export
-- [ ] ICD-O-3 and ICD-10 reference data
+- [x] Full ICD-11 integration (release 2026-01):
+  - [x] Local WHO ICD-API Docker container (offline, no runtime dependency)
+  - [x] Full sync: 37,211 MMS + 31,837 foundation entities
+  - [x] Search API over local database with synonyms support
+  - [x] Autocomplete component in Case form (chapter 02: neoplasms)
+  - [x] Case diagnosis linked to ICD-11 MMS entity URI
+- [ ] Comorbidities (search across all ICD-11 chapters)
+- [ ] CSV export for reports
 - [ ] FHIR export (Patient, Condition, Encounter)
 - [ ] Cross-organization data exchange (design phase)
 
