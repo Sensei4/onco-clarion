@@ -24,3 +24,6 @@ Pillow==12.3.0
 
 # HTTP client for ICD-API
 requests==2.32.3
+
+# FHIR R4B export
+fhir.resources==8.3.0
