@@ -5,9 +5,13 @@ export interface Patient {
   id: number;
   full_name: string;
   medical_record_number: string;
-  birth_date: string; // ISO date
+  birth_date: string;
+  age: number | null;
   sex: PatientSex;
   vital_status: PatientVitalStatus;
+  death_date: string | null;
+  insurance_policy_number: string;
+  first_diagnosis_date: string | null;
   organization: number;
   organization_name: string;
   created_at: string;
@@ -15,7 +19,6 @@ export interface Patient {
 
 export interface PatientDetail extends Patient {
   contacts: Record<string, unknown>;
-  age: number | null;
   updated_at: string;
 }
 
@@ -38,8 +41,10 @@ export interface CreatePatientPayload {
   birth_date: string;
   sex: PatientSex;
   medical_record_number: string;
+  insurance_policy_number?: string;
   contacts?: Record<string, unknown>;
   vital_status?: PatientVitalStatus;
+  death_date?: string | null;
 }
 
 export type UpdatePatientPayload = Partial<

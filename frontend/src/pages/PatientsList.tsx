@@ -14,6 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useAuth } from "@/features/auth/useAuth";
 import { PatientFormDialog } from "@/features/patients/components/PatientFormDialog";
 import { usePatients } from "@/features/patients/hooks";
 import type { PatientSex } from "@/features/patients/types";
@@ -29,7 +30,8 @@ const SEX_LABELS: Record<PatientSex, string> = {
   unknown: "Unknown",
 };
 
-function formatDate(iso: string): string {
+function formatDate(iso: string | null): string {
+  if (!iso) return "—";
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return iso;
   return date.toLocaleDateString("en-GB", {
@@ -40,6 +42,9 @@ function formatDate(iso: string): string {
 }
 
 export function PatientsList() {
+  const { user } = useAuth();
+  const isSuperuser = user?.is_superuser === true;
+
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -89,7 +94,7 @@ export function PatientsList() {
       </div>
 
       <Card>
-        <CardContent className="p-0">
+        <CardContent className="p-0 overflow-x-auto">
           {isLoading && (
             <div className="p-8 text-center text-muted-foreground">
               Loading patients…
@@ -114,12 +119,15 @@ export function PatientsList() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Full name</TableHead>
+                  <TableHead>Registered</TableHead>
                   <TableHead>MRN</TableHead>
-                  <TableHead>Birth date</TableHead>
+                  <TableHead>Full name</TableHead>
                   <TableHead>Sex</TableHead>
-                  <TableHead>Vital status</TableHead>
-                  <TableHead>Organization</TableHead>
+                  <TableHead>Birth date</TableHead>
+                  <TableHead>Policy</TableHead>
+                  <TableHead>First diagnosis</TableHead>
+                  <TableHead>Death date</TableHead>
+                  {isSuperuser && <TableHead>Organization</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -128,6 +136,12 @@ export function PatientsList() {
                     key={patient.id}
                     className="cursor-pointer hover:bg-accent"
                   >
+                    <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                      {formatDate(patient.created_at)}
+                    </TableCell>
+                    <TableCell className="font-mono text-xs">
+                      {patient.medical_record_number}
+                    </TableCell>
                     <TableCell className="font-medium">
                       <Link
                         to={`/patients/${patient.id}`}
@@ -136,25 +150,42 @@ export function PatientsList() {
                         {patient.full_name}
                       </Link>
                     </TableCell>
-                    <TableCell className="font-mono text-xs">
-                      {patient.medical_record_number}
+                    <TableCell className="text-sm">
+                      {SEX_LABELS[patient.sex]}
                     </TableCell>
-                    <TableCell>{formatDate(patient.birth_date)}</TableCell>
-                    <TableCell>{SEX_LABELS[patient.sex]}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          patient.vital_status === "alive"
-                            ? "default"
-                            : "destructive"
-                        }
-                      >
-                        {patient.vital_status}
-                      </Badge>
+                    <TableCell className="text-sm whitespace-nowrap">
+                      {formatDate(patient.birth_date)}
+                      {patient.age != null && (
+                        <span className="ml-1 text-muted-foreground">
+                          ({patient.age})
+                        </span>
+                      )}
                     </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
-                      {patient.organization_name}
+                    <TableCell className="font-mono text-xs text-muted-foreground">
+                      {patient.insurance_policy_number || "—"}
                     </TableCell>
+                    <TableCell className="text-sm whitespace-nowrap">
+                      {formatDate(patient.first_diagnosis_date)}
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      {patient.vital_status === "dead" ? (
+                        <div className="flex items-center gap-2">
+                          <Badge variant="destructive">dead</Badge>
+                          {patient.death_date && (
+                            <span className="text-sm text-muted-foreground">
+                              {formatDate(patient.death_date)}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <Badge variant="outline">alive</Badge>
+                      )}
+                    </TableCell>
+                    {isSuperuser && (
+                      <TableCell className="text-muted-foreground text-sm">
+                        {patient.organization_name}
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>
