@@ -64,6 +64,13 @@ A 10-minute walkthrough of a complete patient journey: from registering a new pa
     response, no runtime dependency on WHO servers
   - Cancer case diagnosis linked to ICD-11 MMS entity URI,
     with deep link to the WHO ICD-11 Browser
+  - **FHIR R4B export** (admin-only):
+  - Mappers for Patient, Condition, Encounter, Practitioner
+  - Single-resource export: `GET /api/fhir/Patient/{id}/`
+  - Full Bundle export: `GET /api/fhir/Patient/{id}/$everything/`
+  - Bundle includes Patient + all its Conditions + Encounters + authoring Practitioners
+  - Frontend: "Export FHIR" button on patient page (admins only)
+  - Every export is audited (`AuditEvent.Action.EXPORT`)
   - **Currently limited to chapter 02 (Neoplasms) in the Case form.**
     The underlying API supports all 28 chapters; broader search can be
     enabled when the project adds comorbidity tracking or on community

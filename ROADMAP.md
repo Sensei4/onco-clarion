@@ -53,9 +53,15 @@ GitHub Issues and project milestones.
   - [x] Search API over local database with synonyms support
   - [x] Autocomplete component in Case form (chapter 02: neoplasms)
   - [x] Case diagnosis linked to ICD-11 MMS entity URI
+- [x] FHIR R4B export:
+  - [x] Mappers: Patient → Patient, CancerCase → Condition, Event → Encounter, User → Practitioner
+  - [x] Endpoints: GET /api/fhir/Patient/{id}/ and /api/fhir/Patient/{id}/$everything/
+  - [x] Bundle.type=collection with all related resources
+  - [x] Admin-only access
+  - [x] Audit logging (AuditEvent.Action.EXPORT)
+  - [x] Frontend Export FHIR button on patient page
 - [ ] Comorbidities (search across all ICD-11 chapters)
 - [ ] CSV export for reports
-- [ ] FHIR export (Patient, Condition, Encounter)
 - [ ] Cross-organization data exchange (design phase)
 
 ## Phase 4 — Hardening (in progress)
