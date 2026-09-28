@@ -4,14 +4,14 @@
 [![Python](https://img.shields.io/badge/python-3.14-blue.svg)](https://www.python.org/)
 [![Django](https://img.shields.io/badge/django-5.2%20LTS-green.svg)](https://www.djangoproject.com/)
 [![React](https://img.shields.io/badge/react-18-61dafb.svg)](https://react.dev/)
-[![Tests](https://img.shields.io/badge/tests-103%20passing-brightgreen.svg)](#testing)
+[![Tests](https://img.shields.io/badge/tests-199%20passing-brightgreen.svg)](#testing)
 [![Status](https://img.shields.io/badge/status-pre--alpha-orange.svg)](#status)
 
 > **An open-source web application for organizing the work of oncology dispensaries and cancer clinics.**
 
 OncoClarion models **patient flow** — the queues and transitions that oncologists actually work with every day. Patients, cancer cases, clinical events, and the full lifecycle from primary visit to remission.
 
-> ⚠️ **Status:** pre-alpha. Working: authentication, patient management, cancer case management with FSM lifecycle and audit trail, clinical events, and three workflow queues (Schedule, Waiting list, Observation). Not ready for clinical use.
+> ⚠️ **Status:** pre-alpha. Working: authentication, patient management, cancer case management with FSM lifecycle and audit trail, ICD-11 diagnosis coding, FHIR R4B export, clinical events, three workflow queues, referrals, documents, reports, and audit log. Not ready for clinical use.
 
 ---
 
@@ -19,10 +19,8 @@ OncoClarion models **patient flow** — the queues and transitions that oncologi
 
 Oncology care is not a single visit — it is a long, cyclical journey:
 
-```
 primary visit → diagnostics → tumor board → waiting list →
 hospitalization → treatment → observation → (repeat) → remission
-```
 
 Most generic EMR systems model documents. OncoClarion models the **patient flow** — the queues and transitions that matter clinically.
 
@@ -57,33 +55,32 @@ A 10-minute walkthrough of a complete patient journey: from registering a new pa
   - 9 statuses: `new → diagnostic → consilium → waiting_hospitalization → in_treatment → observation → remission`, plus `relapse → consilium` (cycle) and `terminal`.
   - Every transition is **audited** (who, when, why).
   - Transitions can only be performed via the FSM API.
-  - **ICD-11 integration** (WHO release 2026-01, fully local):
-  - Full ICD-11 MMS + Foundation synced into PostgreSQL
-    (37,211 + 31,837 entities)
-  - Autocomplete search by code, title, or synonym — millisecond
-    response, no runtime dependency on WHO servers
-  - Cancer case diagnosis linked to ICD-11 MMS entity URI,
-    with deep link to the WHO ICD-11 Browser
-  - **FHIR R4B export** (admin-only):
-  - Mappers for Patient, Condition, Encounter, Practitioner
-  - Single-resource export: `GET /api/fhir/Patient/{id}/`
-  - Full Bundle export: `GET /api/fhir/Patient/{id}/$everything/`
-  - Bundle includes Patient + all its Conditions + Encounters + authoring Practitioners
-  - Frontend: "Export FHIR" button on patient page (admins only)
-  - Every export is audited (`AuditEvent.Action.EXPORT`)
-  - **Currently limited to chapter 02 (Neoplasms) in the Case form.**
-    The underlying API supports all 28 chapters; broader search can be
-    enabled when the project adds comorbidity tracking or on community
-    feedback.
+- **ICD-11 integration** (WHO release 2026-01, fully local):
+  - Full ICD-11 MMS + Foundation synced into PostgreSQL (37,211 + 31,837 entities).
+  - Autocomplete search by code, title, or synonym — millisecond response, no runtime dependency on WHO servers.
+  - Cancer case diagnosis linked to ICD-11 MMS entity URI, with deep link to the WHO ICD-11 Browser.
+  - Currently limited to chapter 02 (Neoplasms) in the Case form. The underlying API supports all 28 chapters; broader search can be enabled when the project adds comorbidity tracking or on community feedback.
+- **FHIR R4B export** (admin-only):
+  - Mappers for Patient, Condition, Encounter, Practitioner.
+  - Single-resource export: `GET /api/fhir/Patient/{id}/`.
+  - Full Bundle export: `GET /api/fhir/Patient/{id}/$everything/`.
+  - Bundle includes Patient + all its Conditions + Encounters + authoring Practitioners.
+  - Frontend: "Export FHIR" button on patient page (admins only).
+  - Every export is audited (`AuditEvent.Action.EXPORT`).
 - **Clinical events** of 6 types:
-  - Primary visit, Follow-up visit, Observation visit
-  - Consilium (with participants and decision)
-  - Hospitalization (ward, reason, discharge date)
-  - Treatment (modality, regimen, cycle tracking)
+  - Primary visit, Follow-up visit, Observation visit.
+  - Consilium (with participants and decision).
+  - Hospitalization (ward, reason, discharge date).
+  - Treatment (modality, regimen, cycle tracking).
+- **Referrals** — orders for lab, histology, cytology, imaging, or other diagnostic procedures, with their own lifecycle (ordered → completed / cancelled).
+- **Documents** — files attached to a cancer case, with type, title, and uploaded-by tracking.
 - **Three workflow queues** for daily clinical work:
   - **Schedule** — planned events for today and upcoming days.
   - **Waiting list** — cases waiting for hospitalization, sorted by waiting time.
   - **Observation** — cases under observation, sorted by time since last visit.
+- **Reports** — five aggregate views with date filter:
+  - Cases by FSM status, cases by clinical stage, waiting time (avg/median/max), events by type, top diagnoses.
+- **Audit log** (admin-only) — every read, write, download, and export of medical data is recorded with user, IP, action, and entity.
 
 ## Core concepts
 
@@ -102,6 +99,8 @@ See [`docs/domain.md`](docs/domain.md) for the full domain model.
 | Database     | PostgreSQL 16                                      |
 | Auth         | Django session-based authentication                |
 | FSM          | django-fsm-2                                       |
+| Reference    | ICD-11 (WHO ICD-API container, local sync)         |
+| Interop      | FHIR R4B (fhir.resources)                          |
 | Frontend     | React 18, TypeScript, Vite, Tailwind v4            |
 | UI           | shadcn/ui + Radix                                  |
 | Server state | TanStack Query                                     |
@@ -136,11 +135,11 @@ docker compose exec backend python manage.py createsuperuser
 docker compose exec backend pytest
 ```
 
-**103 tests** covering authentication, multi-tenancy, patient CRUD, cancer cases with FSM, transitions with audit, and clinical events.
+**199 tests** covering authentication, multi-tenancy, patient CRUD, cancer cases with FSM, transitions with audit, clinical events, referrals, documents, audit log, reports, ICD-11 search, and FHIR mappers.
 
 ## Roadmap
 
-See [`ROADMAP.md`](ROADMAP.md). Phase 0–2 complete. Next: referrals, documents, reports.
+See [`ROADMAP.md`](ROADMAP.md). Phase 0–2 complete. Phase 3 (reporting, ICD-11, FHIR) and Phase 4 (hardening) in progress.
 
 ## Disclaimer
 
