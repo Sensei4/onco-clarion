@@ -255,3 +255,121 @@ class TestPatientPagination:
         assert len(data["results"]) == 5
         assert data["previous"] is not None
         assert data["next"] is None
+
+
+@pytest.mark.django_db
+class TestPatientNewFields:
+    """Tests for insurance_policy_number and death_date."""
+
+    def test_create_with_insurance_policy(self, api_client, doctor, organization):
+        api_client.force_authenticate(user=doctor)
+        response = api_client.post(
+            "/api/patients/",
+            {
+                "organization": organization.id,
+                "full_name": "Policy Patient",
+                "birth_date": "1980-01-01",
+                "sex": "male",
+                "medical_record_number": "MRN-POLICY-001",
+                "insurance_policy_number": "SNILS-123-456-789",
+                "vital_status": "alive",
+            },
+            format="json",
+        )
+        assert response.status_code == 201
+        data = response.json()
+        assert data["insurance_policy_number"] == "SNILS-123-456-789"
+
+    def test_update_death_date(self, api_client, doctor, patient):
+        api_client.force_authenticate(user=doctor)
+        response = api_client.patch(
+            f"/api/patients/{patient.id}/",
+            {
+                "vital_status": "dead",
+                "death_date": "2026-09-20",
+            },
+            format="json",
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["vital_status"] == "dead"
+        assert data["death_date"] == "2026-09-20"
+
+    def test_insurance_policy_optional(self, api_client, doctor, organization):
+        """Patient can be created without insurance policy."""
+        api_client.force_authenticate(user=doctor)
+        response = api_client.post(
+            "/api/patients/",
+            {
+                "organization": organization.id,
+                "full_name": "No Policy",
+                "birth_date": "1990-01-01",
+                "sex": "female",
+                "medical_record_number": "MRN-NOPOL",
+                "vital_status": "alive",
+            },
+            format="json",
+        )
+        assert response.status_code == 201
+        assert response.json()["insurance_policy_number"] == ""
+
+
+@pytest.mark.django_db
+class TestFirstDiagnosisDate:
+    """Tests for the computed first_diagnosis_date field."""
+
+    def test_null_when_no_cases(self, api_client, doctor, patient):
+        """Patient without cases → first_diagnosis_date is null."""
+        api_client.force_authenticate(user=doctor)
+        response = api_client.get(f"/api/patients/{patient.id}/")
+        assert response.status_code == 200
+        # List endpoint returns the computed field
+        list_response = api_client.get("/api/patients/")
+        result = list_response.json()["results"][0]
+        assert result["first_diagnosis_date"] is None
+
+    def test_min_across_multiple_cases(self, api_client, doctor, patient, organization):
+        """Multiple cases → earliest verification_date."""
+        from datetime import date
+
+        from apps.cases.models import CancerCase
+
+        # Create two cases with different verification dates
+        CancerCase.objects.create(
+            patient=patient,
+            organization=organization,
+            diagnosis_code="C50.9",
+            verification_date=date(2026, 5, 15),
+        )
+        CancerCase.objects.create(
+            patient=patient,
+            organization=organization,
+            diagnosis_code="C34.9",
+            verification_date=date(2026, 3, 1),  # earlier
+        )
+
+        api_client.force_authenticate(user=doctor)
+        response = api_client.get("/api/patients/")
+        # find our patient in results
+        results = response.json()["results"]
+        target = next(r for r in results if r["id"] == patient.id)
+        assert target["first_diagnosis_date"] == "2026-03-01"
+
+    def test_single_case_date(self, api_client, doctor, patient, organization):
+        """Single case → its verification_date."""
+        from datetime import date
+
+        from apps.cases.models import CancerCase
+
+        CancerCase.objects.create(
+            patient=patient,
+            organization=organization,
+            diagnosis_code="C50.9",
+            verification_date=date(2026, 4, 10),
+        )
+
+        api_client.force_authenticate(user=doctor)
+        response = api_client.get("/api/patients/")
+        results = response.json()["results"]
+        target = next(r for r in results if r["id"] == patient.id)
+        assert target["first_diagnosis_date"] == "2026-04-10"
