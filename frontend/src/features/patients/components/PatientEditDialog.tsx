@@ -49,9 +49,11 @@ export function PatientEditDialog({
   const [birthDate, setBirthDate] = useState(patient.birth_date);
   const [sex, setSex] = useState<PatientSex>(patient.sex);
   const [mrn, setMrn] = useState(patient.medical_record_number);
+  const [policy, setPolicy] = useState(patient.insurance_policy_number);
   const [vitalStatus, setVitalStatus] = useState<PatientVitalStatus>(
     patient.vital_status,
   );
+  const [deathDate, setDeathDate] = useState(patient.death_date ?? "");
   const [error, setError] = useState<string | null>(null);
 
   // Reset form when patient changes or dialog reopens
@@ -61,10 +63,19 @@ export function PatientEditDialog({
       setBirthDate(patient.birth_date);
       setSex(patient.sex);
       setMrn(patient.medical_record_number);
+      setPolicy(patient.insurance_policy_number);
       setVitalStatus(patient.vital_status);
+      setDeathDate(patient.death_date ?? "");
       setError(null);
     }
   }, [open, patient]);
+
+  // When status changes back to alive, clear death date
+  useEffect(() => {
+    if (vitalStatus === "alive") {
+      setDeathDate("");
+    }
+  }, [vitalStatus]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -75,7 +86,9 @@ export function PatientEditDialog({
       birth_date: birthDate,
       sex,
       medical_record_number: mrn.trim(),
+      insurance_policy_number: policy.trim(),
       vital_status: vitalStatus,
+      death_date: vitalStatus === "dead" && deathDate ? deathDate : null,
     };
 
     try {
@@ -101,7 +114,7 @@ export function PatientEditDialog({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto pr-2">
             <div className="space-y-2">
               <Label htmlFor="edit_full_name">Full name</Label>
               <Input
@@ -150,6 +163,19 @@ export function PatientEditDialog({
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="edit_policy">
+                Insurance policy number{" "}
+                <span className="text-muted-foreground">(optional)</span>
+              </Label>
+              <Input
+                id="edit_policy"
+                value={policy}
+                onChange={(e) => setPolicy(e.target.value)}
+                placeholder="e.g. SNILS, NHS number"
+              />
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="edit_vital_status">Vital status</Label>
               <select
                 id="edit_vital_status"
@@ -166,6 +192,18 @@ export function PatientEditDialog({
                 ))}
               </select>
             </div>
+
+            {vitalStatus === "dead" && (
+              <div className="space-y-2">
+                <Label htmlFor="edit_death_date">Date of death</Label>
+                <Input
+                  id="edit_death_date"
+                  type="date"
+                  value={deathDate}
+                  onChange={(e) => setDeathDate(e.target.value)}
+                />
+              </div>
+            )}
 
             {error && (
               <p className="text-destructive text-sm" role="alert">

@@ -44,6 +44,7 @@ export function PatientFormDialog({
   const [birthDate, setBirthDate] = useState("");
   const [sex, setSex] = useState<PatientSex>("unknown");
   const [mrn, setMrn] = useState("");
+  const [policy, setPolicy] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -52,6 +53,7 @@ export function PatientFormDialog({
       setBirthDate("");
       setSex("unknown");
       setMrn("");
+      setPolicy("");
       setError(null);
     }
   }, [open]);
@@ -71,6 +73,7 @@ export function PatientFormDialog({
       birth_date: birthDate,
       sex,
       medical_record_number: mrn.trim(),
+      insurance_policy_number: policy.trim(),
       contacts: {},
       vital_status: "alive",
     };
@@ -99,7 +102,7 @@ export function PatientFormDialog({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto pr-2">
             <div className="space-y-2">
               <Label htmlFor="full_name">Full name</Label>
               <Input
@@ -146,6 +149,19 @@ export function PatientFormDialog({
                 onChange={(e) => setMrn(e.target.value)}
                 required
                 placeholder="MRN-0001"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="policy">
+                Insurance policy number{" "}
+                <span className="text-muted-foreground">(optional)</span>
+              </Label>
+              <Input
+                id="policy"
+                value={policy}
+                onChange={(e) => setPolicy(e.target.value)}
+                placeholder="e.g. SNILS, NHS number"
               />
             </div>
 
