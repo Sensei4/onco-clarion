@@ -50,7 +50,12 @@ A 10-minute walkthrough of a complete patient journey: from registering a new pa
 
 - **Authentication** with role-based access (doctor / admin).
 - **Multi-tenant patient management** — every clinic sees only its own patients.
-- **Patient CRUD** with search and pagination.
+- **Patient CRUD** with search and pagination:
+  - Patient demographics: full name, birth date (+ computed age), sex.
+  - Medical record number (unique per organization).
+  - Insurance policy number.
+  - Vital status (alive / dead) with date of death.
+  - Computed first diagnosis date (earliest verification across cases).
 - **Cancer case management** with FSM lifecycle:
   - 9 statuses: `new → diagnostic → consilium → waiting_hospitalization → in_treatment → observation → remission`, plus `relapse → consilium` (cycle) and `terminal`.
   - Every transition is **audited** (who, when, why).

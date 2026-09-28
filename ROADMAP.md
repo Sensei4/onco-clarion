@@ -23,7 +23,8 @@ GitHub Issues and project milestones.
 - [x] Event base model and 6 subtypes (primary visit, follow-up,
       observation, consilium, hospitalization, treatment)
 - [x] Event API (read all + write per subtype)
-- [x] Patient list, detail, and create UI
+- [x] Patient model and CRUD (multi-tenant by organization)
+- [x] Patient extended fields: insurance policy number, death date, first diagnosis date
 - [x] Case detail UI with transition buttons, timeline, and events
 - [x] Event create dialog with per-type fields
 - [x] Referral model with 5 types and status lifecycle
