@@ -18,6 +18,7 @@ class AuditEvent(models.Model):
         DOWNLOAD = "download", "Download"
         LOGIN = "login", "Login"
         LOGOUT = "logout", "Logout"
+        EXPORT = "export", "Export"
 
     id = models.BigAutoField(primary_key=True)
     user = models.ForeignKey(

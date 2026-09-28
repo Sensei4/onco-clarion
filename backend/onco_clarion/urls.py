@@ -15,6 +15,7 @@ urlpatterns = [
     path("api/", include("apps.audit.urls")),
     path("api/", include("apps.reports.urls")),
     path("api/", include("apps.dictionaries.urls")),
+    path("api/fhir/", include("apps.fhir_export.urls")),
 ]
 
 if settings.DEBUG:
