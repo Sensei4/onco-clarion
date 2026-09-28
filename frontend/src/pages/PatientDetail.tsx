@@ -1,12 +1,23 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Pencil } from "lucide-react";
+import { ArrowLeft, Download, Pencil } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/features/auth/useAuth";
 import { CasesSection } from "@/features/cases/components/CasesSection";
+import {
+  useExportPatientEverything,
+  useExportPatientFhir,
+} from "@/features/fhir/hooks";
 import { PatientEditDialog } from "@/features/patients/components/PatientEditDialog";
 import { usePatient } from "@/features/patients/hooks";
 import type { PatientSex } from "@/features/patients/types";
@@ -48,6 +59,12 @@ export function PatientDetail() {
 
   const { data: patient, isLoading, isError, error } = usePatient(patientId);
 
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin" || user?.is_superuser === true;
+
+  const exportPatient = useExportPatientFhir();
+  const exportEverything = useExportPatientEverything();
+
   if (isLoading) {
     return <div className="text-muted-foreground">Loading patient…</div>;
   }
@@ -84,10 +101,42 @@ export function PatientDetail() {
             {patient.medical_record_number}
           </p>
         </div>
-        <Button onClick={() => setEditOpen(true)}>
-          <Pencil className="mr-2 h-4 w-4" />
-          Edit
-        </Button>
+        <div className="flex items-center gap-2">
+          {isAdmin && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  disabled={
+                    exportPatient.isPending || exportEverything.isPending
+                  }
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Export FHIR
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={() => exportPatient.mutate(patient.id)}
+                  disabled={exportPatient.isPending}
+                >
+                  Patient only
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => exportEverything.mutate(patient.id)}
+                  disabled={exportEverything.isPending}
+                >
+                  Everything (Bundle)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+
+          <Button onClick={() => setEditOpen(true)}>
+            <Pencil className="mr-2 h-4 w-4" />
+            Edit
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
