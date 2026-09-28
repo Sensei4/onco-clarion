@@ -1,3 +1,6 @@
+from datetime import date
+
+from django.db.models import Min
 from rest_framework import serializers
 
 from apps.accounts.models import Organization
@@ -8,13 +11,17 @@ from .models import Patient
 class PatientListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for list endpoints.
 
-    Returns only the fields needed to render a table row.
+    Includes computed fields:
+    - age: computed from birth_date
+    - first_diagnosis_date: earliest verification_date across all cases
     """
 
     organization_name = serializers.CharField(
         source="organization.name",
         read_only=True,
     )
+    age = serializers.SerializerMethodField()
+    first_diagnosis_date = serializers.SerializerMethodField()
 
     class Meta:
         model = Patient
@@ -23,13 +30,40 @@ class PatientListSerializer(serializers.ModelSerializer):
             "full_name",
             "medical_record_number",
             "birth_date",
+            "age",
             "sex",
             "vital_status",
+            "death_date",
+            "insurance_policy_number",
+            "first_diagnosis_date",
             "organization",
             "organization_name",
             "created_at",
         )
         read_only_fields = fields
+
+    def get_age(self, obj: Patient) -> int | None:
+        if not obj.birth_date:
+            return None
+        today = date.today()
+        years = today.year - obj.birth_date.year
+        if (today.month, today.day) < (obj.birth_date.month, obj.birth_date.day):
+            years -= 1
+        return years
+
+    def get_first_diagnosis_date(self, obj: Patient) -> str | None:
+        """Earliest verification_date across all cancer cases of this patient.
+
+        Uses annotation if available (annotated as `_first_diagnosis_date`),
+        otherwise falls back to a query.
+        """
+        annotated = getattr(obj, "_first_diagnosis_date", None)
+        if annotated is not None:
+            return annotated.isoformat() if annotated else None
+
+        # Fallback if annotation wasn't applied
+        result = obj.cases.aggregate(first=Min("verification_date"))["first"]
+        return result.isoformat() if result else None
 
 
 class PatientDetailSerializer(serializers.ModelSerializer):
@@ -53,6 +87,8 @@ class PatientDetailSerializer(serializers.ModelSerializer):
             "sex",
             "medical_record_number",
             "contacts",
+            "insurance_policy_number",
+            "death_date",
             "vital_status",
             "created_at",
             "updated_at",
@@ -60,9 +96,6 @@ class PatientDetailSerializer(serializers.ModelSerializer):
         read_only_fields = ("id", "created_at", "updated_at")
 
     def get_age(self, obj: Patient) -> int | None:
-        """Compute age in full years from birth_date."""
-        from datetime import date
-
         if not obj.birth_date:
             return None
         today = date.today()
@@ -72,10 +105,6 @@ class PatientDetailSerializer(serializers.ModelSerializer):
         return years
 
     def validate_organization(self, value: Organization) -> Organization:
-        """Ensure the user can assign patients only to their own organization.
-
-        Superusers may assign to any organization.
-        """
         request = self.context.get("request")
         if request is None:
             return value

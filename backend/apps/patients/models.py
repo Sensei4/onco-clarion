@@ -33,6 +33,16 @@ class Patient(models.Model):
     )
     medical_record_number = models.CharField(max_length=64)
     contacts = models.JSONField(default=dict, blank=True)
+    insurance_policy_number = models.CharField(
+        max_length=64,
+        blank=True,
+        help_text="Insurance policy number (e.g. SNILS, NHS number, etc.)",
+    )
+    death_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Date of death, if applicable",
+    )
     vital_status = models.CharField(
         max_length=16,
         choices=VitalStatus.choices,

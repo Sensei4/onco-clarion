@@ -1,4 +1,4 @@
-from django.db.models import Q, QuerySet
+from django.db.models import Min, Q, QuerySet
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 
@@ -23,7 +23,11 @@ class PatientViewSet(AuditLogMixin, viewsets.ModelViewSet):
 
     def get_queryset(self) -> QuerySet[Patient]:
         user = self.request.user
-        queryset = Patient.objects.select_related("organization").order_by("full_name")
+        queryset = (
+            Patient.objects.select_related("organization")
+            .annotate(_first_diagnosis_date=Min("cases__verification_date"))
+            .order_by("full_name")
+        )
 
         if user.is_superuser:
             return queryset
