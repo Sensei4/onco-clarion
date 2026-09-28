@@ -7,6 +7,7 @@ import {
   LogOut,
   Plus,
   Trash2,
+  Upload,
   type LucideIcon,
 } from "lucide-react";
 
@@ -47,6 +48,7 @@ const ACTION_META: Record<
   download: { label: "Download", icon: Download, variant: "secondary" },
   login: { label: "Login", icon: LogIn, variant: "outline" },
   logout: { label: "Logout", icon: LogOut, variant: "outline" },
+  export: { label: "Export", icon: Upload, variant: "default" },
 };
 
 const ACTION_FILTER_OPTIONS: { value: AuditAction | ""; label: string }[] = [
@@ -58,6 +60,7 @@ const ACTION_FILTER_OPTIONS: { value: AuditAction | ""; label: string }[] = [
   { value: "download", label: "Download" },
   { value: "login", label: "Login" },
   { value: "logout", label: "Logout" },
+  { value: "export", label: "Export" },
 ];
 
 function formatDateTime(iso: string): string {
@@ -176,7 +179,16 @@ export function Audit() {
               </TableHeader>
               <TableBody>
                 {data.results.map((e: AuditEvent) => {
-                  const meta = ACTION_META[e.action];
+                  // Defensive fallback: if the backend introduces a new
+                  // action that the frontend does not yet know about,
+                  // render a generic badge instead of crashing.
+                  const meta =
+                    ACTION_META[e.action] ??
+                    ({
+                      label: e.action,
+                      icon: Eye,
+                      variant: "outline",
+                    } as const);
                   const Icon = meta.icon;
                   return (
                     <TableRow key={e.id}>

@@ -5,7 +5,8 @@ export type AuditAction =
   | "delete"
   | "download"
   | "login"
-  | "logout";
+  | "logout"
+  | "export";
 
 export interface AuditEvent {
   id: number;
