@@ -38,6 +38,9 @@ class ReferralViewSet(AuditLogMixin, viewsets.ModelViewSet):
             "organization",
             "ordered_by",
             "completed_by",
+            "department",
+            "method",
+            "assigned_to",
         ).order_by("-ordered_at")
 
         if not user.is_superuser:
@@ -45,6 +48,7 @@ class ReferralViewSet(AuditLogMixin, viewsets.ModelViewSet):
                 return qs.none()
             qs = qs.filter(organization_id=user.organization_id)
 
+        # Filters
         case_id = self.request.query_params.get("case")
         if case_id:
             qs = qs.filter(case_id=case_id)
@@ -60,6 +64,26 @@ class ReferralViewSet(AuditLogMixin, viewsets.ModelViewSet):
         status_filter = self.request.query_params.get("status")
         if status_filter:
             qs = qs.filter(status=status_filter)
+
+        department_id = self.request.query_params.get("department")
+        if department_id:
+            qs = qs.filter(department_id=department_id)
+
+        method_id = self.request.query_params.get("method")
+        if method_id:
+            qs = qs.filter(method_id=method_id)
+
+        assigned_to_id = self.request.query_params.get("assigned_to")
+        if assigned_to_id:
+            qs = qs.filter(assigned_to_id=assigned_to_id)
+
+        scheduled_from = self.request.query_params.get("scheduled_from")
+        if scheduled_from:
+            qs = qs.filter(scheduled_at__gte=scheduled_from)
+
+        scheduled_to = self.request.query_params.get("scheduled_to")
+        if scheduled_to:
+            qs = qs.filter(scheduled_at__lte=scheduled_to)
 
         search = self.request.query_params.get("search")
         if search:
