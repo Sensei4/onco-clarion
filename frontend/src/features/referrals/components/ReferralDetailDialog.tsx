@@ -131,7 +131,9 @@ export function ReferralDetailDialog({
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            {referral.title || TYPE_LABELS[referral.type]}
+            {referral.method_name ||
+              referral.title ||
+              TYPE_LABELS[referral.type]}
           </DialogTitle>
           <DialogDescription>
             {TYPE_LABELS[referral.type]} · Case{" "}
@@ -140,23 +142,80 @@ export function ReferralDetailDialog({
         </DialogHeader>
 
         {mode === "view" && (
-          <div className="space-y-4 py-4 text-sm">
+          <div className="space-y-4 py-4 text-sm max-h-[60vh] overflow-y-auto pr-2">
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Status</span>
               <Badge variant={STATUS_VARIANTS[referral.status]}>
                 {referral.status}
               </Badge>
             </div>
+
+            {referral.department_name && (
+              <>
+                <Separator />
+                <div className="flex justify-between gap-4">
+                  <span className="text-muted-foreground">Department</span>
+                  <span className="text-right">{referral.department_name}</span>
+                </div>
+              </>
+            )}
+
+            {referral.method_name && (
+              <>
+                <Separator />
+                <div className="flex justify-between gap-4">
+                  <span className="text-muted-foreground">Method</span>
+                  <span className="text-right">{referral.method_name}</span>
+                </div>
+              </>
+            )}
+
+            {referral.assigned_to_name && (
+              <>
+                <Separator />
+                <div className="flex justify-between gap-4">
+                  <span className="text-muted-foreground">Assigned to</span>
+                  <span className="text-right">
+                    {referral.assigned_to_name}
+                  </span>
+                </div>
+              </>
+            )}
+
+            {referral.scheduled_at && (
+              <>
+                <Separator />
+                <div className="flex justify-between gap-4">
+                  <span className="text-muted-foreground">Scheduled at</span>
+                  <span className="text-right">
+                    {formatDateTime(referral.scheduled_at)}
+                  </span>
+                </div>
+              </>
+            )}
+
+            {referral.room && (
+              <>
+                <Separator />
+                <div className="flex justify-between gap-4">
+                  <span className="text-muted-foreground">Room</span>
+                  <span className="font-mono text-right">{referral.room}</span>
+                </div>
+              </>
+            )}
+
             <Separator />
             <div className="flex justify-between">
               <span className="text-muted-foreground">Ordered by</span>
               <span>{referral.ordered_by_name}</span>
             </div>
+
             <Separator />
             <div className="flex justify-between">
               <span className="text-muted-foreground">Ordered at</span>
               <span>{formatDateTime(referral.ordered_at)}</span>
             </div>
+
             {referral.notes && (
               <>
                 <Separator />
@@ -166,6 +225,7 @@ export function ReferralDetailDialog({
                 </div>
               </>
             )}
+
             {referral.status === "completed" && (
               <>
                 <Separator />
