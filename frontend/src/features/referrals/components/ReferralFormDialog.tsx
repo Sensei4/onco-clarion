@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -11,10 +11,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useCreateReferral } from "@/features/referrals/hooks";
+import {
+  useCreateReferral,
+  useDiagnosticDepartments,
+} from "@/features/referrals/hooks";
 import type {
   CreateReferralPayload,
-  ReferralType,
+  DiagnosticCategory,
 } from "@/features/referrals/types";
 import { ApiRequestError } from "@/lib/api";
 
@@ -26,13 +29,19 @@ interface ReferralFormDialogProps {
   onSuccess?: () => void;
 }
 
-const TYPE_OPTIONS: { value: ReferralType; label: string }[] = [
-  { value: "lab", label: "Laboratory test" },
-  { value: "histology", label: "Histology" },
-  { value: "cytology", label: "Cytology" },
-  { value: "imaging", label: "Imaging" },
-  { value: "other", label: "Other" },
-];
+function categoryLabel(category: DiagnosticCategory): string {
+  const labels: Record<DiagnosticCategory, string> = {
+    laboratory: "Laboratory",
+    pathology: "Pathology / Morphology",
+    imaging: "Radiology / Imaging",
+    endoscopy: "Endoscopy",
+    functional: "Functional diagnostics",
+    surgery: "Day surgery",
+    molecular: "Molecular diagnostics",
+    other: "Other",
+  };
+  return labels[category] ?? category;
+}
 
 export function ReferralFormDialog({
   open,
@@ -42,30 +51,61 @@ export function ReferralFormDialog({
   onSuccess,
 }: ReferralFormDialogProps) {
   const createReferral = useCreateReferral();
+  const { data: departmentsData, isLoading: departmentsLoading } =
+    useDiagnosticDepartments();
 
-  const [type, setType] = useState<ReferralType>("lab");
-  const [title, setTitle] = useState("");
+  const [departmentId, setDepartmentId] = useState<number | null>(null);
+  const [methodId, setMethodId] = useState<number | null>(null);
+  const [scheduledAt, setScheduledAt] = useState("");
+  const [room, setRoom] = useState("");
   const [notes, setNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
 
+  const departments = useMemo(
+    () => departmentsData?.results ?? [],
+    [departmentsData],
+  );
+
+  // Methods for the selected department
+  const availableMethods = useMemo(() => {
+    if (!departmentId) return [];
+    const dept = departments.find((d) => d.id === departmentId);
+    return dept?.methods ?? [];
+  }, [departmentId, departments]);
+
+  // Reset on close
   useEffect(() => {
     if (!open) {
-      setType("lab");
-      setTitle("");
+      setDepartmentId(null);
+      setMethodId(null);
+      setScheduledAt("");
+      setRoom("");
       setNotes("");
       setError(null);
     }
   }, [open]);
 
+  // Reset method when department changes
+  useEffect(() => {
+    setMethodId(null);
+  }, [departmentId]);
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
 
+    if (!departmentId) {
+      setError("Please select a department.");
+      return;
+    }
+
     const payload: CreateReferralPayload = {
       case: caseId,
       organization: organizationId,
-      type,
-      title: title.trim(),
+      department: departmentId,
+      method: methodId,
+      scheduled_at: scheduledAt ? new Date(scheduledAt).toISOString() : null,
+      room: room.trim(),
       notes: notes.trim(),
     };
 
@@ -83,11 +123,11 @@ export function ReferralFormDialog({
   }
 
   const selectClass =
-    "w-full h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring";
+    "w-full h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>Add referral</DialogTitle>
@@ -96,50 +136,104 @@ export function ReferralFormDialog({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto pr-2">
             <div className="space-y-2">
-              <Label htmlFor="referral_type">Type</Label>
+              <Label htmlFor="referral_department">Department *</Label>
               <select
-                id="referral_type"
-                value={type}
-                onChange={(e) => setType(e.target.value as ReferralType)}
+                id="referral_department"
+                value={departmentId ?? ""}
+                onChange={(e) =>
+                  setDepartmentId(
+                    e.target.value ? Number(e.target.value) : null,
+                  )
+                }
                 className={selectClass}
+                disabled={departmentsLoading}
+                required
               >
-                {TYPE_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
+                <option value="">
+                  {departmentsLoading ? "Loading…" : "Select department…"}
+                </option>
+                {departments.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.name} ({categoryLabel(d.category)})
                   </option>
                 ))}
               </select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="referral_title">Title</Label>
+              <Label htmlFor="referral_method">Method</Label>
+              <select
+                id="referral_method"
+                value={methodId ?? ""}
+                onChange={(e) =>
+                  setMethodId(e.target.value ? Number(e.target.value) : null)
+                }
+                className={selectClass}
+                disabled={!departmentId || availableMethods.length === 0}
+              >
+                <option value="">
+                  {!departmentId
+                    ? "Select department first"
+                    : availableMethods.length === 0
+                      ? "No methods in this department"
+                      : "Select method (optional)…"}
+                </option>
+                {availableMethods.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.code ? `[${m.code}] ${m.name}` : m.name}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-muted-foreground">
+                The referral title is auto-filled from the method name.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="referral_scheduled_at">
+                Scheduled at{" "}
+                <span className="text-muted-foreground">(optional)</span>
+              </Label>
               <Input
-                id="referral_title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. CT chest with contrast"
-                autoFocus
+                id="referral_scheduled_at"
+                type="datetime-local"
+                value={scheduledAt}
+                onChange={(e) => setScheduledAt(e.target.value)}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="referral_notes">Notes</Label>
+              <Label htmlFor="referral_room">
+                Room <span className="text-muted-foreground">(optional)</span>
+              </Label>
+              <Input
+                id="referral_room"
+                value={room}
+                onChange={(e) => setRoom(e.target.value)}
+                placeholder="e.g. 312"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="referral_notes">
+                Notes <span className="text-muted-foreground">(optional)</span>
+              </Label>
               <textarea
                 id="referral_notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                placeholder="Clinical indication, instructions…"
+                placeholder="Clinical indication, special instructions…"
               />
             </div>
 
             {error && (
-              <p className="text-destructive text-sm" role="alert">
-                {error}
-              </p>
+              <div className="rounded-md border border-destructive bg-destructive/10 p-3">
+                <p className="text-destructive text-sm">{error}</p>
+              </div>
             )}
           </div>
 
@@ -152,7 +246,10 @@ export function ReferralFormDialog({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={createReferral.isPending}>
+            <Button
+              type="submit"
+              disabled={createReferral.isPending || !departmentId}
+            >
               {createReferral.isPending ? "Creating…" : "Create referral"}
             </Button>
           </DialogFooter>
