@@ -110,3 +110,51 @@ def other_referral(db, other_case, other_organization, other_doctor):
         title="CBC",
         ordered_by=other_doctor,
     )
+
+
+@pytest.fixture
+def department(db, organization):
+    """A clinical laboratory department."""
+    from apps.referrals.models import DiagnosticDepartment
+
+    return DiagnosticDepartment.objects.create(
+        organization=organization,
+        name="Clinical laboratory",
+        category=DiagnosticDepartment.Category.LABORATORY,
+    )
+
+
+@pytest.fixture
+def other_department(db, other_organization):
+    """A department in another organization."""
+    from apps.referrals.models import DiagnosticDepartment
+
+    return DiagnosticDepartment.objects.create(
+        organization=other_organization,
+        name="Other laboratory",
+        category=DiagnosticDepartment.Category.LABORATORY,
+    )
+
+
+@pytest.fixture
+def method(db, department):
+    """A CBC method in the clinical laboratory."""
+    from apps.referrals.models import DiagnosticMethod
+
+    return DiagnosticMethod.objects.create(
+        department=department,
+        code="CBC",
+        name="Complete blood count",
+    )
+
+
+@pytest.fixture
+def other_method(db, other_department):
+    """A method in another organization's department."""
+    from apps.referrals.models import DiagnosticMethod
+
+    return DiagnosticMethod.objects.create(
+        department=other_department,
+        code="X",
+        name="Foreign method",
+    )
