@@ -9,6 +9,8 @@ import {
   cancelReferral,
   completeReferral,
   createReferral,
+  fetchDiagnosticDepartments,
+  fetchDiagnosticMethods,
   fetchReferral,
   fetchReferrals,
   reopenReferral,
@@ -18,6 +20,7 @@ import type {
   CancelReferralPayload,
   CompleteReferralPayload,
   CreateReferralPayload,
+  DepartmentsListParams,
   PaginatedResponse,
   Referral,
   ReferralListParams,
@@ -104,5 +107,26 @@ export function useReopenReferral(id: number) {
       queryClient.invalidateQueries({ queryKey: referralsKey.all });
       queryClient.invalidateQueries({ queryKey: referralsKey.detail(id) });
     },
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Diagnostic departments and methods (Stage 16)
+// ---------------------------------------------------------------------------
+
+export function useDiagnosticDepartments(params: DepartmentsListParams = {}) {
+  return useQuery({
+    queryKey: ["diagnostic-departments", params] as const,
+    queryFn: () => fetchDiagnosticDepartments(params),
+    staleTime: 5 * 60_000, // 5 min — reference data
+  });
+}
+
+export function useDiagnosticMethods(departmentId?: number) {
+  return useQuery({
+    queryKey: ["diagnostic-methods", departmentId] as const,
+    queryFn: () => fetchDiagnosticMethods(departmentId),
+    enabled: departmentId !== undefined && departmentId > 0,
+    staleTime: 5 * 60_000,
   });
 }

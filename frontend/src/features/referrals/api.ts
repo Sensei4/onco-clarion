@@ -4,6 +4,10 @@ import type {
   CancelReferralPayload,
   CompleteReferralPayload,
   CreateReferralPayload,
+  DepartmentsListParams,
+  DiagnosticCategory,
+  DiagnosticDepartment,
+  DiagnosticMethod,
   PaginatedResponse,
   Referral,
   ReferralDetail,
@@ -20,6 +24,13 @@ function buildQuery(params: ReferralListParams): string {
   if (params.event !== undefined) query.set("event", String(params.event));
   if (params.type) query.set("type", params.type);
   if (params.status) query.set("status", params.status);
+  if (params.department !== undefined)
+    query.set("department", String(params.department));
+  if (params.method !== undefined) query.set("method", String(params.method));
+  if (params.assigned_to !== undefined)
+    query.set("assigned_to", String(params.assigned_to));
+  if (params.scheduled_from) query.set("scheduled_from", params.scheduled_from);
+  if (params.scheduled_to) query.set("scheduled_to", params.scheduled_to);
   if (params.search) query.set("search", params.search);
   const qs = query.toString();
   return qs ? `?${qs}` : "";
@@ -80,4 +91,37 @@ export async function reopenReferral(id: number): Promise<ReferralDetail> {
   return apiRequest<ReferralDetail>(`/referrals/${id}/reopen/`, {
     method: "POST",
   });
+}
+
+// ---------------------------------------------------------------------------
+// Diagnostic departments and methods (Stage 16)
+// ---------------------------------------------------------------------------
+
+export interface DepartmentsListParams {
+  category?: DiagnosticCategory;
+  is_active?: boolean;
+}
+
+export async function fetchDiagnosticDepartments(
+  params: DepartmentsListParams = {},
+): Promise<PaginatedResponse<DiagnosticDepartment>> {
+  const query = new URLSearchParams();
+  if (params.category) query.set("category", params.category);
+  if (params.is_active !== undefined)
+    query.set("is_active", String(params.is_active));
+  const qs = query.toString();
+  return apiRequest<PaginatedResponse<DiagnosticDepartment>>(
+    `/referrals/departments/${qs ? `?${qs}` : ""}`,
+  );
+}
+
+export async function fetchDiagnosticMethods(
+  departmentId?: number,
+): Promise<PaginatedResponse<DiagnosticMethod>> {
+  const query = new URLSearchParams();
+  if (departmentId !== undefined) query.set("department", String(departmentId));
+  const qs = query.toString();
+  return apiRequest<PaginatedResponse<DiagnosticMethod>>(
+    `/referrals/methods/${qs ? `?${qs}` : ""}`,
+  );
 }

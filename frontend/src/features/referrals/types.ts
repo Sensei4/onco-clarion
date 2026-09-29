@@ -18,6 +18,14 @@ export interface Referral {
   type: ReferralType;
   status: ReferralStatus;
   title: string;
+  department: number | null;
+  department_name: string | null;
+  method: number | null;
+  method_name: string | null;
+  assigned_to: number | null;
+  assigned_to_name: string | null;
+  scheduled_at: string | null;
+  room: string;
   ordered_by: number;
   ordered_by_name: string;
   ordered_at: string;
@@ -47,16 +55,26 @@ export interface ReferralListParams {
   event?: number;
   type?: ReferralType;
   status?: ReferralStatus;
+  department?: number;
+  method?: number;
+  assigned_to?: number;
+  scheduled_from?: string;
+  scheduled_to?: string;
   search?: string;
 }
 
 export interface CreateReferralPayload {
   case: number;
   organization: number;
-  type: ReferralType;
+  type?: ReferralType;
   title?: string;
   notes?: string;
   event?: number | null;
+  department?: number | null;
+  method?: number | null;
+  assigned_to?: number | null;
+  scheduled_at?: string | null;
+  room?: string;
 }
 
 export interface UpdateReferralPayload {
@@ -72,4 +90,34 @@ export interface CompleteReferralPayload {
 
 export interface CancelReferralPayload {
   reason?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Diagnostic departments and methods (Stage 16)
+// ---------------------------------------------------------------------------
+
+export type DiagnosticCategory =
+  | "laboratory"
+  | "pathology"
+  | "imaging"
+  | "endoscopy"
+  | "functional"
+  | "surgery"
+  | "molecular"
+  | "other";
+
+export interface DiagnosticMethod {
+  id: number;
+  department: number;
+  code: string;
+  name: string;
+  is_active: boolean;
+}
+
+export interface DiagnosticDepartment {
+  id: number;
+  name: string;
+  category: DiagnosticCategory;
+  is_active: boolean;
+  methods: DiagnosticMethod[];
 }
