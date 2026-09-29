@@ -1,5 +1,6 @@
 import { useState } from "react";
 import {
+  Activity,
   FlaskConical,
   Microscope,
   Plus,
@@ -57,6 +58,19 @@ function formatDate(iso: string | null): string {
   });
 }
 
+function formatDateTime(iso: string | null): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 const TYPE_FILTER_OPTIONS: { value: ReferralType | ""; label: string }[] = [
   { value: "", label: "All types" },
   { value: "lab", label: "Laboratory" },
@@ -107,7 +121,7 @@ export function ReferralsSection({
         </div>
       </CardHeader>
 
-      <CardContent className="p-0">
+      <CardContent className="p-0 overflow-x-auto">
         {isLoading && (
           <div className="p-6 text-center text-muted-foreground">
             Loading referrals…
@@ -132,17 +146,24 @@ export function ReferralsSection({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Type</TableHead>
-                <TableHead>Title</TableHead>
+                <TableHead>Department</TableHead>
+                <TableHead>Method / Title</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Scheduled</TableHead>
                 <TableHead>Ordered</TableHead>
                 <TableHead>Result</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {data.results.map((r) => {
-                const meta = TYPE_META[r.type];
-                const Icon = meta.icon;
+                // Prefer category from department; fall back to type
+                const categoryMeta = r.department_name
+                  ? null
+                  : TYPE_META[r.type];
+                const Icon = categoryMeta?.icon ?? Activity;
+                const departmentLabel =
+                  r.department_name ?? categoryMeta?.label ?? "—";
+                const methodLabel = r.method_name || r.title || "—";
                 return (
                   <TableRow
                     key={r.id}
@@ -152,19 +173,22 @@ export function ReferralsSection({
                     <TableCell className="font-medium">
                       <span className="inline-flex items-center gap-2">
                         <Icon className="h-4 w-4 text-muted-foreground" />
-                        {meta.label}
+                        {departmentLabel}
                       </span>
                     </TableCell>
-                    <TableCell className="text-sm">{r.title || "—"}</TableCell>
+                    <TableCell className="text-sm">{methodLabel}</TableCell>
                     <TableCell>
                       <Badge variant={STATUS_VARIANTS[r.status]}>
                         {r.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
+                    <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                      {r.scheduled_at ? formatDateTime(r.scheduled_at) : "—"}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
                       {formatDate(r.ordered_at)}
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground max-w-xs">
+                    <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
                       {r.status === "completed"
                         ? formatDate(r.result_received_at)
                         : "—"}
