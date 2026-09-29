@@ -30,6 +30,10 @@ GitHub Issues and project milestones.
 - [x] Referral model with 5 types and status lifecycle
 - [x] Referral CRUD API with complete/cancel/reopen actions
 - [x] Referral UI on case page with filter and detail dialog
+- [x] DiagnosticDepartment and DiagnosticMethod reference models (org-scoped)
+- [x] Diagnostic assignment on Referral: department, method, assigned_to, scheduled_at, room
+- [x] Auto-fill Referral type and title from department/method
+- [x] Filter Referrals by department, method, assigned_to, scheduled range
 - [x] Document model with 5 types and file storage
 - [x] Document upload/download API with multipart support
 - [x] Documents section on case page with filter, upload, download, delete

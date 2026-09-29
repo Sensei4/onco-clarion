@@ -77,7 +77,12 @@ A 10-minute walkthrough of a complete patient journey: from registering a new pa
   - Consilium (with participants and decision).
   - Hospitalization (ward, reason, discharge date).
   - Treatment (modality, regimen, cycle tracking).
-- **Referrals** — orders for lab, histology, cytology, imaging, or other diagnostic procedures, with their own lifecycle (ordered → completed / cancelled).
+- **Referrals** — orders for diagnostic procedures with their own
+  lifecycle (ordered → completed / cancelled):
+  - Diagnostic departments and methods (org-scoped reference data)
+  - Assign to a specific department, method, doctor, date and room
+  - Auto-fill referral type and title from the selected department/method
+  - Filters by department, method, assigned doctor, and scheduled date range
 - **Documents** — files attached to a cancer case, with type, title, and uploaded-by tracking.
 - **Three workflow queues** for daily clinical work:
   - **Schedule** — planned events for today and upcoming days.
