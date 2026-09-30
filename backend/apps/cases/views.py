@@ -116,6 +116,108 @@ class CancerCaseViewSet(AuditLogMixin, viewsets.ModelViewSet):
     @action(
         detail=False,
         methods=["get"],
+        url_path="admission-queue",
+        url_name="admission-queue",
+    )
+    def admission_queue(self, request):
+        """Return cases waiting for hospitalization, enriched for admission.
+
+        Sorted by waiting time (longest first). Each item includes
+        patient data, waiting context, and the last consilium's
+        decision and recommended plan.
+        """
+        from datetime import date
+
+        from django.db.models import OuterRef, Subquery
+
+        from apps.events.models import EventConsilium
+
+        from .models import StatusTransition
+        from .serializers_admission import AdmissionQueueItemSerializer
+
+        # Latest transition INTO waiting_hospitalization
+        latest_waiting = (
+            StatusTransition.objects.filter(
+                case=OuterRef("pk"),
+                to_status="waiting_hospitalization",
+            )
+            .order_by("-transitioned_at")
+            .values("transitioned_at")[:1]
+        )
+
+        # Latest consilium for each case
+        latest_consilium = EventConsilium.objects.filter(
+            case=OuterRef("pk"),
+            status="done",
+        ).order_by("-scheduled_at")
+        latest_consilium_date = latest_consilium.values("scheduled_at")[:1]
+        latest_consilium_decision = latest_consilium.values("decision")[:1]
+        latest_consilium_plan = latest_consilium.values("recommended_plan")[:1]
+
+        qs = (
+            self.get_queryset()
+            .filter(status="waiting_hospitalization")
+            .select_related("patient")
+            .annotate(
+                waiting_since=Subquery(latest_waiting),
+                last_consilium_date=Subquery(latest_consilium_date),
+                last_consilium_decision=Subquery(latest_consilium_decision),
+                last_consilium_recommended_plan=Subquery(latest_consilium_plan),
+            )
+            .order_by("waiting_since")
+        )
+
+        today = date.today()
+        items = []
+        for case in qs:
+            patient = case.patient
+
+            # Compute age
+            age = None
+            if patient.birth_date:
+                years = today.year - patient.birth_date.year
+                if (today.month, today.day) < (
+                    patient.birth_date.month,
+                    patient.birth_date.day,
+                ):
+                    years -= 1
+                age = years
+
+            # Compute waiting days
+            waiting_days = None
+            if case.waiting_since:
+                waiting_days = (today - case.waiting_since.date()).days
+
+            items.append(
+                {
+                    "id": case.id,
+                    "diagnosis_code": case.diagnosis_code,
+                    "diagnosis_text": case.diagnosis_text,
+                    "stage": case.stage,
+                    "tnm_t": case.tnm_t,
+                    "tnm_n": case.tnm_n,
+                    "tnm_m": case.tnm_m,
+                    "patient": patient.id,
+                    "patient_name": patient.full_name,
+                    "patient_mrn": patient.medical_record_number,
+                    "patient_birth_date": patient.birth_date,
+                    "patient_age": age,
+                    "patient_sex": patient.sex,
+                    "patient_insurance_policy_number": patient.insurance_policy_number,
+                    "waiting_since": case.waiting_since,
+                    "waiting_days": waiting_days,
+                    "last_consilium_date": case.last_consilium_date,
+                    "last_consilium_decision": case.last_consilium_decision or "",
+                    "last_consilium_recommended_plan": case.last_consilium_recommended_plan or "",
+                }
+            )
+
+        serializer = AdmissionQueueItemSerializer(items, many=True)
+        return Response(serializer.data)
+
+    @action(
+        detail=False,
+        methods=["get"],
         url_path="waiting-list",
         url_name="waiting-list",
     )
