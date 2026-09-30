@@ -97,3 +97,40 @@ def other_case(db, other_organization, other_patient):
         diagnosis_text="Lung cancer",
         stage="IIIA",
     )
+
+
+@pytest.fixture
+def case_in_waiting(db, organization, patient, doctor):
+    """A CancerCase in waiting_hospitalization status."""
+    case = CancerCase.objects.create(
+        patient=patient,
+        organization=organization,
+        diagnosis_code="C50.9",
+        diagnosis_text="Waiting case",
+        stage="IIB",
+    )
+    case.start_diagnostics(by_user=doctor, reason="setup")
+    case.save()
+    case.schedule_consilium(by_user=doctor, reason="setup")
+    case.save()
+    case.approve_hospitalization(by_user=doctor, reason="setup")
+    case.save()
+    return case
+
+
+@pytest.fixture
+def other_case_in_waiting(db, other_organization, other_patient, other_doctor):
+    """A CancerCase in waiting_hospitalization in another organization."""
+    case = CancerCase.objects.create(
+        patient=other_patient,
+        organization=other_organization,
+        diagnosis_code="C34.9",
+        diagnosis_text="Foreign waiting case",
+    )
+    case.start_diagnostics(by_user=other_doctor, reason="setup")
+    case.save()
+    case.schedule_consilium(by_user=other_doctor, reason="setup")
+    case.save()
+    case.approve_hospitalization(by_user=other_doctor, reason="setup")
+    case.save()
+    return case
