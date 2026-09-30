@@ -13,13 +13,15 @@ class TestCasesByStatus:
         response = api_client.get("/api/reports/cases-by-status/")
         assert response.status_code == 403
 
-    def test_returns_all_statuses(self, api_client, doctor, case_ii, case_iii):
+    def test_returns_all_statuses(
+        self, api_client, doctor, case_ii, case_iii
+    ):
         api_client.force_authenticate(user=doctor)
         response = api_client.get("/api/reports/cases-by-status/")
         assert response.status_code == 200
         data = response.json()
-        # 9 statuses always present
-        assert len(data["results"]) == 9
+        # 10 statuses always present (including admission_refused)
+        assert len(data["results"]) == 10
         assert data["total"] == 2
 
     def test_counts_by_status(self, api_client, doctor, case_ii, case_iii):
