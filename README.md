@@ -57,7 +57,7 @@ A 10-minute walkthrough of a complete patient journey: from registering a new pa
   - Vital status (alive / dead) with date of death.
   - Computed first diagnosis date (earliest verification across cases).
 - **Cancer case management** with FSM lifecycle:
-  - 9 statuses: `new → diagnostic → consilium → waiting_hospitalization → in_treatment → observation → remission`, plus `relapse → consilium` (cycle) and `terminal`.
+  - 10 statuses: `new → diagnostic → consilium → waiting_hospitalization → in_treatment → observation → remission`, plus `relapse → consilium` (cycle), `terminal`, and `admission_refused` (with requeue back to waiting list).
   - Every transition is **audited** (who, when, why).
   - Transitions can only be performed via the FSM API.
 - **ICD-11 integration** (WHO release 2026-01, fully local):
@@ -79,14 +79,15 @@ A 10-minute walkthrough of a complete patient journey: from registering a new pa
   - Treatment (modality, regimen, cycle tracking).
 - **Referrals** — orders for diagnostic procedures with their own
   lifecycle (ordered → completed / cancelled):
-  - Diagnostic departments and methods (org-scoped reference data)
-  - Assign to a specific department, method, doctor, date and room
-  - Auto-fill referral type and title from the selected department/method
-  - Filters by department, method, assigned doctor, and scheduled date range
+  - Diagnostic departments and methods (org-scoped reference data).
+  - Assign to a specific department, method, doctor, date and room.
+  - Auto-fill referral type and title from the selected department/method.
+  - Filters by department, method, assigned doctor, and scheduled date range.
 - **Documents** — files attached to a cancer case, with type, title, and uploaded-by tracking.
-- **Three workflow queues** for daily clinical work:
+- **Four workflow queues** for daily clinical work:
   - **Schedule** — planned events for today and upcoming days.
   - **Waiting list** — cases waiting for hospitalization, sorted by waiting time.
+  - **Admission desk** — process patients from the waiting list: admit to hospital, refuse admission (with requeue back to waiting list), or mark terminal. Shows patient card, waiting context, and the last consilium's decision.
   - **Observation** — cases under observation, sorted by time since last visit.
 - **Reports** — five aggregate views with date filter:
   - Cases by FSM status, cases by clinical stage, waiting time (avg/median/max), events by type, top diagnoses.

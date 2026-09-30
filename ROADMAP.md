@@ -17,14 +17,13 @@ GitHub Issues and project milestones.
 
 - [x] Organization and User models (custom user)
 - [x] Patient model and CRUD (multi-tenant by organization)
-- [x] CancerCase model with FSM lifecycle (9 statuses)
+- [x] Patient extended fields: insurance policy number, death date, first diagnosis date
+- [x] CancerCase model with FSM lifecycle (10 statuses, including admission_refused)
 - [x] StatusTransition audit trail
 - [x] Case transitions API with validation
 - [x] Event base model and 6 subtypes (primary visit, follow-up,
       observation, consilium, hospitalization, treatment)
 - [x] Event API (read all + write per subtype)
-- [x] Patient model and CRUD (multi-tenant by organization)
-- [x] Patient extended fields: insurance policy number, death date, first diagnosis date
 - [x] Case detail UI with transition buttons, timeline, and events
 - [x] Event create dialog with per-type fields
 - [x] Referral model with 5 types and status lifecycle
@@ -44,9 +43,10 @@ GitHub Issues and project milestones.
 - [x] Events section on case page
 - [x] Schedule view (planned events for today and upcoming days)
 - [x] Waiting list view (cases with `waiting_hospitalization` status)
+- [x] Admission desk (process waiting list: admit / refuse / requeue / terminal)
 - [x] Observation list view (cases with `observation` status)
 - [ ] Tumor board recording workflow
-- [ ] Hospitalization workflow
+- [ ] Hospitalization workflow (ward assignment, bed tracking)
 
 ## Phase 3 — Reporting and interoperability (in progress)
 
