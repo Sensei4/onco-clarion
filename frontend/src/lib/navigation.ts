@@ -3,6 +3,7 @@ import {
   Calendar,
   ClipboardList,
   Eye,
+  Hospital,
   LayoutDashboard,
   ShieldCheck,
   Users,
@@ -42,6 +43,12 @@ export const navigation: NavItem[] = [
     href: "/waiting-list",
     icon: ClipboardList,
     description: "For hospitalization",
+  },
+  {
+    name: "Admission desk",
+    href: "/admission",
+    icon: Hospital,
+    description: "Process waiting list",
   },
   {
     name: "Observation",

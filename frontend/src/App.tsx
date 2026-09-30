@@ -15,6 +15,7 @@ import { PatientsList } from "@/pages/PatientsList";
 import { Reports } from "@/pages/Reports";
 import { Schedule } from "@/pages/Schedule";
 import { WaitingList } from "@/pages/WaitingList";
+import { Admission } from "@/pages/Admission";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -42,6 +43,7 @@ export default function App() {
                 <Route path="/schedule" element={<Schedule />} />
                 <Route path="/waiting-list" element={<WaitingList />} />
                 <Route path="/observation" element={<Observation />} />
+                <Route path="/admission" element={<Admission />} />
                 <Route path="/reports" element={<Reports />} />
                 <Route element={<RequireAdmin />}>
                   <Route path="/audit" element={<Audit />} />

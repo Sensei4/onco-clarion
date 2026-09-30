@@ -81,6 +81,25 @@ const TRANSITIONS_BY_STATUS: Record<CaseStatus, TransitionDef[]> = {
       target: "in_treatment",
     },
     {
+      action: "refuse_admission",
+      label: "Refuse admission",
+      target: "admission_refused",
+      variant: "outline",
+    },
+    {
+      action: "mark_terminal",
+      label: "Mark terminal",
+      target: "terminal",
+      variant: "destructive",
+    },
+  ],
+  admission_refused: [
+    {
+      action: "requeue_for_admission",
+      label: "Requeue for admission",
+      target: "waiting_hospitalization",
+    },
+    {
       action: "mark_terminal",
       label: "Mark terminal",
       target: "terminal",
@@ -101,7 +120,11 @@ const TRANSITIONS_BY_STATUS: Record<CaseStatus, TransitionDef[]> = {
     },
   ],
   observation: [
-    { action: "mark_remission", label: "Mark remission", target: "remission" },
+    {
+      action: "mark_remission",
+      label: "Mark remission",
+      target: "remission",
+    },
     {
       action: "mark_relapse",
       label: "Mark relapse",

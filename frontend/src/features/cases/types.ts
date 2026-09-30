@@ -3,6 +3,7 @@ export type CaseStatus =
   | "diagnostic"
   | "consilium"
   | "waiting_hospitalization"
+  | "admission_refused"
   | "in_treatment"
   | "observation"
   | "remission"
