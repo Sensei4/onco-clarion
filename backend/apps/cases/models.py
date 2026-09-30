@@ -19,6 +19,7 @@ class CancerCase(models.Model):
             "waiting_hospitalization",
             "Waiting for hospitalization",
         )
+        ADMISSION_REFUSED = "admission_refused", "Admission refused"
         IN_TREATMENT = "in_treatment", "In treatment"
         OBSERVATION = "observation", "Observation"
         REMISSION = "remission", "Remission"
@@ -124,6 +125,32 @@ class CancerCase(models.Model):
     @transition(
         field=status,
         source=[Status.WAITING_HOSPITALIZATION],
+        target=Status.ADMISSION_REFUSED,
+    )
+    def refuse_admission(self, by_user=None, reason=""):
+        """Mark that the admission was refused by the admission desk.
+
+        The case is moved out of the waiting list. It can later be
+        re-queued (see `requeue_for_admission`) or marked as terminal.
+        """
+        self._last_transition = (by_user, reason)
+
+    @transition(
+        field=status,
+        source=[Status.ADMISSION_REFUSED],
+        target=Status.WAITING_HOSPITALIZATION,
+    )
+    def requeue_for_admission(self, by_user=None, reason=""):
+        """Return the case to the waiting list after a previous refusal.
+
+        Used when the patient is ready again (e.g. was temporarily
+        unavailable, has completed pre-admission workup).
+        """
+        self._last_transition = (by_user, reason)
+
+    @transition(
+        field=status,
+        source=[Status.WAITING_HOSPITALIZATION],
         target=Status.IN_TREATMENT,
     )
     def admit_to_hospital(self, by_user=None, reason=""):
@@ -173,6 +200,7 @@ class CancerCase(models.Model):
             Status.DIAGNOSTIC,
             Status.CONSILIUM,
             Status.WAITING_HOSPITALIZATION,
+            Status.ADMISSION_REFUSED,
             Status.IN_TREATMENT,
             Status.OBSERVATION,
             Status.RELAPSE,
